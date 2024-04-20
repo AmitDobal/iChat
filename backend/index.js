@@ -1,6 +1,7 @@
 import express from "express";
 import http from "http";
 import dotenv from "dotenv";
+import cors from "cors";
 import { Server } from "socket.io";
 import mongoDBConnection from "./db/mongoDBConnection.js";
 import { addMsgToConversation } from "./controllers/msgs.controller.js";
@@ -11,11 +12,17 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 
 const app = express();
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    credentials: true,
+  })
+);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     allowedHeaders: ["*"],
-    origin: "*",
+    origin: "http://localhost:3000",
   },
 });
 
@@ -30,7 +37,7 @@ io.on("connection", (socket) => {
 
   socket.on("chat msg", (msg) => {
     const receiverSocket = userSocketMap[msg?.receiver];
-    console.log("MMMSGGGG: ", JSON.stringify(msg))
+    console.log("MMMSGGGG: ", JSON.stringify(msg));
     if (receiverSocket) {
       addMsgToConversation([msg.sender, msg.receiver], {
         text: msg.text,
@@ -41,7 +48,7 @@ io.on("connection", (socket) => {
     }
   });
 });
-app.use('/msgs', msgsRouter)
+app.use("/msgs", msgsRouter);
 
 app.get("/", (req, res) => {
   return res.send("<html>Welcome to the chat application</html>");

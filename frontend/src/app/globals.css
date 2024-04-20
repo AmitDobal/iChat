@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Styles for the scrollbar track (part the thumb slides within) */
+::-webkit-scrollbar-track {
+    background-color: #f0f0f0; /* Light grey track */
+  }
+  
+  /* Styles for the scrollbar thumb (draggable part) */
+  ::-webkit-scrollbar-thumb {
+    background-color: #888; /* Darker grey thumb */
+    border-radius: 10px; /* Rounded corners on the thumb */
+    border: 3px solid #f0f0f0; /* Creates a border inside the thumb */
+  }
+  
+  /* Styles for the scrollbar itself (overall part) */
+  ::-webkit-scrollbar {
+    width: 12px; /* Width of the vertical scrollbar */
+    height: 12px; /* Height of the horizontal scrollbar */
+  }

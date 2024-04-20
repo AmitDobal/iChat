@@ -35,7 +35,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Auth failed" });
     generateJWTTokenAndSetCookie(user._id, username, res);
 
-    res.status(200).json({ _id: user._id, username: user.username });
+    res.status(200).json({ _id: user._id, username: user.username, profilePic: user.profilePic });
   } catch (error) {
     console.log("Login error:", error.message);
     res.status(500).json({ error: error.message });

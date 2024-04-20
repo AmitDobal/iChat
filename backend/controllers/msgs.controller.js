@@ -28,8 +28,9 @@ export const getMsgsForConversation = async (req, res) => {
       console.log("Conversation not found");
       return res.status(200).send();
     }
-    return res.json(conversation.msgs);
+    return res.status(200).json(conversation.msgs);
   } catch (error) {
     console.log("Error getMsgsForConversation: ", error.message);
+    return res.status(500).json({error:error.message});
   }
 };

@@ -1,20 +1,39 @@
 "use client";
 import ChatUsers from "@/components/ChatUsers";
 import { useAuthStore } from "@/zustand/useAuthStore";
+import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
 import useUsersStore from "@/zustand/useUsersStore";
+import { Spin } from "antd";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import moment from "moment";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
+import ProfileAvatar from "@/components/ProfileAvatar";
+
+// export const metadata = {
+//   title: "iChat-Home",
+//   description: "Home page to chat with your friends and family",
+// };
 
 const ChatPage = () => {
   const [socket, setSocket] = useState(null);
   const [msg, setMsg] = useState("");
   const [msgs, setMsgs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { authName } = useAuthStore();
+  const { authName, authPicURL } = useAuthStore();
   const { users, updateUsers } = useUsersStore();
   const chatReceiver = useChatReceiverStore((state) => state.chatReceiver);
+  const chatReceiverPicURL = useChatReceiverStore(
+    (state) => state.chatReceiverPicURL
+  );
+  const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
+
+  const endOfMEssagesRef = useRef(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     const newSocket = io(process.env.NEXT_PUBLIC_CHAT_SERVER_URL, {
@@ -25,25 +44,30 @@ const ChatPage = () => {
     setSocket(newSocket);
 
     newSocket.on("chat msg", (msgRecieve) => {
-      console.log("Recieve msg on client " + msgRecieve);
-      setMsgs((prevMsgs) => [
-        ...prevMsgs,
-        { text: msgRecieve.text, sentByCurrentUser: false },
-      ]);
+      console.log("Recieve msg on client " + JSON.stringify(msgRecieve));
+      updateChatMsgs([...chatMsgs, msgRecieve]);
+      // setMsgs((prevMsgs) => [
+      //   ...prevMsgs,
+      //   { text: msgRecieve.text, sentByCurrentUser: false },
+      // ]);
     });
 
     getUerData();
 
     return () => newSocket.close();
-  }, []);
+  }, [chatMsgs]);
+
 
   const getUerData = async () => {
     try {
+      setIsLoading(true);
       const res = await axios.get(process.env.NEXT_PUBLIC_GET_USERS_URL, {
         withCredentials: true,
       });
       updateUsers(res.data);
+      setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
       console.log(
         "Error while fetching users data from backend:",
         error.message
@@ -59,16 +83,28 @@ const ChatPage = () => {
     };
     if (socket) {
       socket.emit("chat msg", msgToBeSent);
-      setMsgs((prevMsg) => [
-        ...prevMsg,
-        { text: msg, sentByCurrentUser: true },
-      ]);
+      updateChatMsgs([...chatMsgs, msgToBeSent]);
+      // setMsgs((prevMsg) => [
+      //   ...prevMsg,
+      //   { text: msg, sentByCurrentUser: true },
+      // ]);
       setMsg("");
     }
   };
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMsgs]);
+
   const handleInputKeyDown = (e) => {
     if (e.key === "Enter") sendMsg();
+  };
+
+  const handleLogout = () => {
+    router.replace("/");
+  };
+  const scrollToBottom = () => {
+    endOfMEssagesRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -94,20 +130,28 @@ const ChatPage = () => {
               <div className="ml-2 font-bold text-2xl">iChat</div>
             </div>
             <div className="flex flex-col items-center bg-indigo-100 border border-gray-200 mt-4 w-full py-6 px-4 rounded-lg">
-              <div className="h-20 w-20 rounded-full border overflow-hidden">
+              {/* <div className="h-20 w-20 rounded-full border overflow-hidden">
                 <img
                   src="https://img.freepik.com/free-photo/3d-illustration-teenager-with-funny-face-glasses_1142-50955.jpg?t=st=1713610133~exp=1713613733~hmac=561d695ad58c4f6fbe0d872af0f088d76e72b43ad3489ec1aff68190a35ba5d7&w=740"
                   alt="Avatar"
                   className="h-full w-full"
                 />
+              </div> */}
+              <div className="relative inline-block">
+                <ProfileAvatar />
               </div>
+
               <div className="text-sm font-semibold mt-2">{authName}</div>
               <div className="text-xs text-gray-500">Software Developer</div>
+
               <div className="flex flex-row items-center mt-3">
                 <div className="flex flex-col justify-center h-4 w-8 bg-indigo-500 rounded-full">
                   <div className="h-3 w-3 bg-white rounded-full self-end mr-1"></div>
                 </div>
                 <div className="leading-none ml-1 text-xs">Active</div>
+                <div className="leading-none ml-1 text-xs text-cyan-50  bg-red-500 rounded-md h-2 p-3 flex justify-center items-center">
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
               </div>
             </div>
             <div className="flex flex-col mt-8">
@@ -117,9 +161,11 @@ const ChatPage = () => {
                   {users?.length - 1}
                 </span>
               </div>
-              <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
-                <ChatUsers />
-                {/* <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
+              <Spin spinning={isLoading}>
+                <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
+                  <ChatUsers />
+
+                  {/* <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
                   <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
                     H
                   </div>
@@ -156,7 +202,8 @@ const ChatPage = () => {
                   </div>
                   <div className="ml-2 text-sm font-semibold">Jerry Guzman</div>
                 </button> */}
-              </div>
+                </div>
+              </Spin>
               {/* <div className="flex flex-row items-center justify-between text-xs mt-6">
                 <span className="font-bold">Archivied</span>
                 <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
@@ -173,12 +220,19 @@ const ChatPage = () => {
               </div> */}
             </div>
           </div>
-          <div className="flex flex-col flex-auto h-full p-6">
+
+          <div className="flex flex-col flex-auto h-full p-6 top-2 ">
             <div class="flex flex-col leading-tight mb-2">
               <div class="text-xl mt-1 flex items-center gap-2">
-                <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
-                  {chatReceiver?.charAt(0).toUpperCase()}
-                </div>
+                {chatReceiver && (
+                  <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
+                    <img
+                      src={chatReceiverPicURL}
+                      alt="Avatar"
+                      className="rounded-full w-8 h-8 object-cover "
+                    />
+                  </div>
+                )}
                 <span class="text-gray-700 mr-3">{chatReceiver}</span>
               </div>
             </div>
@@ -186,39 +240,61 @@ const ChatPage = () => {
               <div className="flex flex-col h-full overflow-x-auto mb-4">
                 <div className="flex flex-col h-full">
                   <div className="grid grid-cols-12 gap-y-2">
-                    {msgs.map((currentMsg, i) => (
+                    {chatMsgs.map((currentMsg, i) => (
                       <>
-                        {!currentMsg?.sentByCurrentUser ? (
-                          <div
-                            key={i}
-                            className="col-start-1 col-end-8 p-3 rounded-lg">
-                            <div className="flex flex-row items-center">
-                              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                                {chatReceiver?.charAt(0).toUpperCase()}
+                        {currentMsg?.sender !== authName ? (
+                          <>
+                            {currentMsg?.sender === chatReceiver && (
+                              <div
+                                key={i}
+                                className="col-start-1 col-end-8 p-3 rounded-lg">
+                                <div className="flex flex-row items-center">
+                                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                                    {/* {chatReceiver?.charAt(0).toUpperCase()} */}
+                                    <img
+                                      src={chatReceiverPicURL}
+                                      alt="Avatar"
+                                      className="rounded-full w-10 h-10 object-cover"
+                                    />
+                                  </div>
+                                  <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                                    <div>{currentMsg.text}</div>
+                                  </div>
+                                </div>
+                                <span class="text-xs text-gray-400 ml-14">
+                                  {moment(currentMsg?.createdAt)?.format(
+                                    "hh:mm A"
+                                  )}
+                                </span>
                               </div>
-                              <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                                <div>{currentMsg.text}</div>
-                              </div>
-                            </div>
-                          </div>
+                            )}
+                          </>
                         ) : (
                           <div className="col-start-6 col-end-13 p-3 rounded-lg">
                             <div className="flex items-center justify-start flex-row-reverse">
                               <div className="flex items-center justify-center h-10 w-10 rounded-full bg-red-300 flex-shrink-0">
-                                You
+                                <img
+                                  src={authPicURL}
+                                  alt="Avatar"
+                                  className="rounded-full w-10 h-10 object-cover"
+                                />
                               </div>
                               <div className="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
                                 <div>{currentMsg.text}</div>
                               </div>
                             </div>
+                            <span class="text-xs text-gray-400 flex items-center justify-start flex-row-reverse mr-14">
+                              {moment(currentMsg?.createdAt)?.format("hh:mm A")}
+                            </span>
                           </div>
                         )}
                       </>
                     ))}
+                    <div ref={endOfMEssagesRef} />
                   </div>
                 </div>
               </div>
-              <div className="flex flex-row items-center h-16 rounded-xl bg-white w-full px-4">
+              <div className="flex flex-row items-center h-16 rounded-xl bg-white w-full px-4 mb-2">
                 <div>
                   <button className="flex items-center justify-center text-gray-400 hover:text-gray-600">
                     <svg
@@ -242,6 +318,7 @@ const ChatPage = () => {
                       value={msg}
                       onChange={(e) => setMsg(e.target.value)}
                       type="text"
+                      disabled={!chatReceiver}
                       className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
                     />
                     <button className="absolute flex items-center justify-center h-full w-12 right-0 top-0 text-gray-400 hover:text-gray-600">
@@ -263,6 +340,7 @@ const ChatPage = () => {
                 <div className="ml-4">
                   <button
                     onClick={sendMsg}
+                    disabled={!chatReceiver}
                     className="flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 rounded-xl text-white px-4 py-1 flex-shrink-0">
                     <span>Send</span>
                     <span className="ml-2">

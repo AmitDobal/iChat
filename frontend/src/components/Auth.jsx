@@ -10,7 +10,7 @@ const Auth = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const { updateAuthName } = useAuthStore();
+  const { updateAuthName, updatePicURL } = useAuthStore();
 
   const router = useRouter();
 
@@ -38,6 +38,7 @@ const Auth = () => {
       else message.error(error.message);
     }
   };
+  //LOGIN
   const handleLogin = async () => {
     try {
       if (!isUsernamePwdValid()) return;
@@ -51,6 +52,8 @@ const Auth = () => {
       );
       if (res.status === 200) {
         updateAuthName(username);
+        console.log(res.data.profilePic);
+        updatePicURL(res.data.profilePic);
         message.success("Login successfull!");
         router.replace("/chat");
       }
