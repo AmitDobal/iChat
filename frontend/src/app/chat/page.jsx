@@ -28,7 +28,7 @@ const ChatPage = () => {
       console.log("Recieve msg on client " + msgRecieve);
       setMsgs((prevMsgs) => [
         ...prevMsgs,
-        { text: msgRecieve.textMsg, sentByCurrentUser: false },
+        { text: msgRecieve.text, sentByCurrentUser: false },
       ]);
     });
 
@@ -53,7 +53,7 @@ const ChatPage = () => {
 
   const sendMsg = () => {
     const msgToBeSent = {
-      textMsg: msg,
+      text: msg,
       sender: authName,
       receiver: chatReceiver,
     };
@@ -114,7 +114,7 @@ const ChatPage = () => {
               <div className="flex flex-row items-center justify-between text-xs">
                 <span className="font-bold">Active Conversations</span>
                 <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
-                  {users?.length}
+                  {users?.length - 1}
                 </span>
               </div>
               <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
@@ -194,7 +194,7 @@ const ChatPage = () => {
                             className="col-start-1 col-end-8 p-3 rounded-lg">
                             <div className="flex flex-row items-center">
                               <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                                A
+                                {chatReceiver?.charAt(0).toUpperCase()}
                               </div>
                               <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
                                 <div>{currentMsg.text}</div>
@@ -204,8 +204,8 @@ const ChatPage = () => {
                         ) : (
                           <div className="col-start-6 col-end-13 p-3 rounded-lg">
                             <div className="flex items-center justify-start flex-row-reverse">
-                              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                                A
+                              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-red-300 flex-shrink-0">
+                                You
                               </div>
                               <div className="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
                                 <div>{currentMsg.text}</div>

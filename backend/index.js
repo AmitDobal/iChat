@@ -2,6 +2,9 @@ import express from "express";
 import http from "http";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
+import mongoDBConnection from "./db/mongoDBConnection.js";
+import { addMsgToConversation } from "./controllers/msgs.controller.js";
+import msgsRouter from "./routes/msgs.route.js";
 
 dotenv.config();
 
@@ -27,15 +30,24 @@ io.on("connection", (socket) => {
 
   socket.on("chat msg", (msg) => {
     const receiverSocket = userSocketMap[msg?.receiver];
-    console.log(msg.textMsg, msg.sender, msg.receiver);
-    if (receiverSocket) receiverSocket.emit("chat msg", msg);
+    console.log("MMMSGGGG: ", JSON.stringify(msg))
+    if (receiverSocket) {
+      addMsgToConversation([msg.sender, msg.receiver], {
+        text: msg.text,
+        sender: msg.sender,
+        receiver: msg.receiver,
+      });
+      receiverSocket.emit("chat msg", msg);
+    }
   });
 });
+app.use('/msgs', msgsRouter)
 
 app.get("/", (req, res) => {
   return res.send("<html>Welcome to the chat application</html>");
 });
 
 server.listen(PORT, () => {
+  mongoDBConnection();
   console.log(`Chat backend server is running on http://localhost:${PORT}`);
 });
