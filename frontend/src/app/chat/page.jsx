@@ -1,313 +1,281 @@
-import React from "react";
+"use client";
+import ChatUsers from "@/components/ChatUsers";
+import { useAuthStore } from "@/zustand/useAuthStore";
+import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
+import useUsersStore from "@/zustand/useUsersStore";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import io from "socket.io-client";
 
-const page = () => {
+const ChatPage = () => {
+  const [socket, setSocket] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [msgs, setMsgs] = useState([]);
+
+  const { authName } = useAuthStore();
+  const { users, updateUsers } = useUsersStore();
+  const chatReceiver = useChatReceiverStore((state) => state.chatReceiver);
+
+  useEffect(() => {
+    const newSocket = io(process.env.NEXT_PUBLIC_CHAT_SERVER_URL, {
+      query: {
+        username: authName,
+      },
+    });
+    setSocket(newSocket);
+
+    newSocket.on("chat msg", (msgRecieve) => {
+      console.log("Recieve msg on client " + msgRecieve);
+      setMsgs((prevMsgs) => [
+        ...prevMsgs,
+        { text: msgRecieve.textMsg, sentByCurrentUser: false },
+      ]);
+    });
+
+    getUerData();
+
+    return () => newSocket.close();
+  }, []);
+
+  const getUerData = async () => {
+    try {
+      const res = await axios.get(process.env.NEXT_PUBLIC_GET_USERS_URL, {
+        withCredentials: true,
+      });
+      updateUsers(res.data);
+    } catch (error) {
+      console.log(
+        "Error while fetching users data from backend:",
+        error.message
+      );
+    }
+  };
+
+  const sendMsg = () => {
+    const msgToBeSent = {
+      textMsg: msg,
+      sender: authName,
+      receiver: chatReceiver,
+    };
+    if (socket) {
+      socket.emit("chat msg", msgToBeSent);
+      setMsgs((prevMsg) => [
+        ...prevMsg,
+        { text: msg, sentByCurrentUser: true },
+      ]);
+      setMsg("");
+    }
+  };
+
+  const handleInputKeyDown = (e) => {
+    if (e.key === "Enter") sendMsg();
+  };
+
   return (
     <div>
-      <div class="flex h-screen antialiased text-gray-800">
-        <div class="flex flex-row h-full w-full overflow-x-hidden">
-          <div class="flex flex-col py-8 pl-6 pr-2 w-64 bg-white flex-shrink-0">
-            <div class="flex flex-row items-center justify-center h-12 w-full">
-              <div class="flex items-center justify-center rounded-2xl text-indigo-700 bg-indigo-100 h-10 w-10">
+      <div className="flex h-screen antialiased text-gray-800">
+        <div className="flex flex-row h-full w-full overflow-x-hidden">
+          <div className="flex flex-col py-8 pl-6 pr-2 w-64 bg-white flex-shrink-0">
+            <div className="flex flex-row items-center justify-center h-12 w-full">
+              <div className="flex items-center justify-center rounded-2xl text-indigo-700 bg-indigo-100 h-10 w-10">
                 <svg
-                  class="w-6 h-6"
+                  className="w-6 h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg">
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
                     d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
                 </svg>
               </div>
-              <div class="ml-2 font-bold text-2xl">QuickChat</div>
+              <div className="ml-2 font-bold text-2xl">iChat</div>
             </div>
-            <div class="flex flex-col items-center bg-indigo-100 border border-gray-200 mt-4 w-full py-6 px-4 rounded-lg">
-              <div class="h-20 w-20 rounded-full border overflow-hidden">
+            <div className="flex flex-col items-center bg-indigo-100 border border-gray-200 mt-4 w-full py-6 px-4 rounded-lg">
+              <div className="h-20 w-20 rounded-full border overflow-hidden">
                 <img
-                  src="https://avatars3.githubusercontent.com/u/2763884?s=128"
+                  src="https://img.freepik.com/free-photo/3d-illustration-teenager-with-funny-face-glasses_1142-50955.jpg?t=st=1713610133~exp=1713613733~hmac=561d695ad58c4f6fbe0d872af0f088d76e72b43ad3489ec1aff68190a35ba5d7&w=740"
                   alt="Avatar"
-                  class="h-full w-full"
+                  className="h-full w-full"
                 />
               </div>
-              <div class="text-sm font-semibold mt-2">Aminos Co.</div>
-              <div class="text-xs text-gray-500">Lead UI/UX Designer</div>
-              <div class="flex flex-row items-center mt-3">
-                <div class="flex flex-col justify-center h-4 w-8 bg-indigo-500 rounded-full">
-                  <div class="h-3 w-3 bg-white rounded-full self-end mr-1"></div>
+              <div className="text-sm font-semibold mt-2">{authName}</div>
+              <div className="text-xs text-gray-500">Software Developer</div>
+              <div className="flex flex-row items-center mt-3">
+                <div className="flex flex-col justify-center h-4 w-8 bg-indigo-500 rounded-full">
+                  <div className="h-3 w-3 bg-white rounded-full self-end mr-1"></div>
                 </div>
-                <div class="leading-none ml-1 text-xs">Active</div>
+                <div className="leading-none ml-1 text-xs">Active</div>
               </div>
             </div>
-            <div class="flex flex-col mt-8">
-              <div class="flex flex-row items-center justify-between text-xs">
-                <span class="font-bold">Active Conversations</span>
-                <span class="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
-                  4
+            <div className="flex flex-col mt-8">
+              <div className="flex flex-row items-center justify-between text-xs">
+                <span className="font-bold">Active Conversations</span>
+                <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
+                  {users?.length}
                 </span>
               </div>
-              <div class="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
-                <button class="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div class="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
+              <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
+                <ChatUsers />
+                {/* <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
+                  <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
                     H
                   </div>
-                  <div class="ml-2 text-sm font-semibold">Henry Boyd</div>
+                  <div className="ml-2 text-sm font-semibold">Henry Boyd</div>
                 </button>
-                <button class="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div class="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
+                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
+                  <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
                     M
                   </div>
-                  <div class="ml-2 text-sm font-semibold">Marta Curtis</div>
-                  <div class="flex items-center justify-center ml-auto text-xs text-white bg-red-500 h-4 w-4 rounded leading-none">
+                  <div className="ml-2 text-sm font-semibold">Marta Curtis</div>
+                  <div className="flex items-center justify-center ml-auto text-xs text-white bg-red-500 h-4 w-4 rounded leading-none">
                     2
                   </div>
                 </button>
-                <button class="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div class="flex items-center justify-center h-8 w-8 bg-orange-200 rounded-full">
+                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
+                  <div className="flex items-center justify-center h-8 w-8 bg-orange-200 rounded-full">
                     P
                   </div>
-                  <div class="ml-2 text-sm font-semibold">Philip Tucker</div>
+                  <div className="ml-2 text-sm font-semibold">
+                    Philip Tucker
+                  </div>
                 </button>
-                <button class="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div class="flex items-center justify-center h-8 w-8 bg-pink-200 rounded-full">
+                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
+                  <div className="flex items-center justify-center h-8 w-8 bg-pink-200 rounded-full">
                     C
                   </div>
-                  <div class="ml-2 text-sm font-semibold">Christine Reid</div>
+                  <div className="ml-2 text-sm font-semibold">
+                    Christine Reid
+                  </div>
                 </button>
-                <button class="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div class="flex items-center justify-center h-8 w-8 bg-purple-200 rounded-full">
+                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
+                  <div className="flex items-center justify-center h-8 w-8 bg-purple-200 rounded-full">
                     J
                   </div>
-                  <div class="ml-2 text-sm font-semibold">Jerry Guzman</div>
-                </button>
+                  <div className="ml-2 text-sm font-semibold">Jerry Guzman</div>
+                </button> */}
               </div>
-              <div class="flex flex-row items-center justify-between text-xs mt-6">
-                <span class="font-bold">Archivied</span>
-                <span class="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
+              {/* <div className="flex flex-row items-center justify-between text-xs mt-6">
+                <span className="font-bold">Archivied</span>
+                <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
                   7
                 </span>
               </div>
-              <div class="flex flex-col space-y-1 mt-4 -mx-2">
-                <button class="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div class="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
+              <div className="flex flex-col space-y-1 mt-4 -mx-2">
+                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
+                  <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
                     H
                   </div>
-                  <div class="ml-2 text-sm font-semibold">Henry Boyd</div>
+                  <div className="ml-2 text-sm font-semibold">Henry Boyd</div>
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
-          <div class="flex flex-col flex-auto h-full p-6">
-            <div class="flex flex-col flex-auto flex-shrink-0 rounded-2xl bg-gray-100 h-full p-4">
-              <div class="flex flex-col h-full overflow-x-auto mb-4">
-                <div class="flex flex-col h-full">
-                  <div class="grid grid-cols-12 gap-y-2">
-                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
-                      <div class="flex flex-row items-center">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                          <div>Hey How are you today?</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
-                      <div class="flex flex-row items-center">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                          <div>
-                            Lorem ipsum dolor sit amet, consectetur adipisicing
-                            elit. Vel ipsa commodi illum saepe numquam maxime
-                            asperiores voluptate sit, minima perspiciatis.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-start-6 col-end-13 p-3 rounded-lg">
-                      <div class="flex items-center justify-start flex-row-reverse">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
-                          <div>I'm ok what about you?</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-start-6 col-end-13 p-3 rounded-lg">
-                      <div class="flex items-center justify-start flex-row-reverse">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
-                          <div>
-                            Lorem ipsum dolor sit, amet consectetur adipisicing.
-                            ?
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
-                      <div class="flex flex-row items-center">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                          <div>Lorem ipsum dolor sit amet !</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-start-6 col-end-13 p-3 rounded-lg">
-                      <div class="flex items-center justify-start flex-row-reverse">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
-                          <div>
-                            Lorem ipsum dolor sit, amet consectetur adipisicing.
-                            ?
-                          </div>
-                          <div class="absolute text-xs bottom-0 right-0 -mb-5 mr-2 text-gray-500">
-                            Seen
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
-                      <div class="flex flex-row items-center">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                          <div>
-                            Lorem ipsum dolor sit amet consectetur adipisicing
-                            elit. Perspiciatis, in.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
-                      <div class="flex flex-row items-center">
-                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
-                          A
-                        </div>
-                        <div class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
-                          <div class="flex flex-row items-center">
-                            <button class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-800 rounded-full h-8 w-10">
-                              <svg
-                                class="w-6 h-6 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="1.5"
-                                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="1.5"
-                                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                              </svg>
-                            </button>
-                            <div class="flex flex-row items-center space-x-px ml-4">
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-4 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-12 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-6 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-5 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-4 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-3 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-10 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-1 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-1 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-8 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-2 w-1 bg-gray-500 rounded-lg"></div>
-                              <div class="h-4 w-1 bg-gray-500 rounded-lg"></div>
+          <div className="flex flex-col flex-auto h-full p-6">
+            <div class="flex flex-col leading-tight mb-2">
+              <div class="text-xl mt-1 flex items-center gap-2">
+                <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
+                  {chatReceiver?.charAt(0).toUpperCase()}
+                </div>
+                <span class="text-gray-700 mr-3">{chatReceiver}</span>
+              </div>
+            </div>
+            <div className="flex flex-col flex-auto flex-shrink-0 rounded-2xl bg-gray-100 h-full p-4">
+              <div className="flex flex-col h-full overflow-x-auto mb-4">
+                <div className="flex flex-col h-full">
+                  <div className="grid grid-cols-12 gap-y-2">
+                    {msgs.map((currentMsg, i) => (
+                      <>
+                        {!currentMsg?.sentByCurrentUser ? (
+                          <div
+                            key={i}
+                            className="col-start-1 col-end-8 p-3 rounded-lg">
+                            <div className="flex flex-row items-center">
+                              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                                A
+                              </div>
+                              <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                                <div>{currentMsg.text}</div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    </div>
+                        ) : (
+                          <div className="col-start-6 col-end-13 p-3 rounded-lg">
+                            <div className="flex items-center justify-start flex-row-reverse">
+                              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                                A
+                              </div>
+                              <div className="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                                <div>{currentMsg.text}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ))}
                   </div>
                 </div>
               </div>
-              <div class="flex flex-row items-center h-16 rounded-xl bg-white w-full px-4">
+              <div className="flex flex-row items-center h-16 rounded-xl bg-white w-full px-4">
                 <div>
-                  <button class="flex items-center justify-center text-gray-400 hover:text-gray-600">
+                  <button className="flex items-center justify-center text-gray-400 hover:text-gray-600">
                     <svg
-                      class="w-5 h-5"
+                      className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg">
                       <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
                         d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
                     </svg>
                   </button>
                 </div>
-                <div class="flex-grow ml-4">
-                  <div class="relative w-full">
+                <div className="flex-grow ml-4">
+                  <div className="relative w-full">
                     <input
+                      onKeyDown={handleInputKeyDown}
+                      value={msg}
+                      onChange={(e) => setMsg(e.target.value)}
                       type="text"
-                      class="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
+                      className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
                     />
-                    <button class="absolute flex items-center justify-center h-full w-12 right-0 top-0 text-gray-400 hover:text-gray-600">
+                    <button className="absolute flex items-center justify-center h-full w-12 right-0 top-0 text-gray-400 hover:text-gray-600">
                       <svg
-                        class="w-6 h-6"
+                        className="w-6 h-6"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
                         <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
                           d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                     </button>
                   </div>
                 </div>
-                <div class="ml-4">
-                  <button class="flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 rounded-xl text-white px-4 py-1 flex-shrink-0">
+                <div className="ml-4">
+                  <button
+                    onClick={sendMsg}
+                    className="flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 rounded-xl text-white px-4 py-1 flex-shrink-0">
                     <span>Send</span>
-                    <span class="ml-2">
+                    <span className="ml-2">
                       <svg
-                        class="w-4 h-4 transform rotate-45 -mt-px"
+                        className="w-4 h-4 transform rotate-45 -mt-px"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
                         <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
                           d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                       </svg>
                     </span>
@@ -322,4 +290,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default ChatPage;

@@ -1,4 +1,5 @@
 "use client";
+import { useAuthStore } from "@/zustand/useAuthStore";
 import { message } from "antd";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -8,12 +9,13 @@ import { HiMiniChatBubbleLeftRight } from "react-icons/hi2";
 const Auth = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [messageApi, contextHolder] = message.useMessage();
+
+  const { updateAuthName } = useAuthStore();
 
   const router = useRouter();
 
   const handleSignup = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       if (!isUsernamePwdValid()) return;
       const res = await axios.post(
@@ -25,6 +27,7 @@ const Auth = () => {
         { withCredentials: true }
       );
       if (res.status === 201) {
+        updateAuthName(username);
         message.success("Signup successfull!");
         router.replace("/chat");
       }
@@ -47,6 +50,7 @@ const Auth = () => {
         { withCredentials: true }
       );
       if (res.status === 200) {
+        updateAuthName(username);
         message.success("Login successfull!");
         router.replace("/chat");
       }
