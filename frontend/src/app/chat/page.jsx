@@ -7,10 +7,9 @@ import useUsersStore from "@/zustand/useUsersStore";
 import { Spin } from "antd";
 import axios from "axios";
 import moment from "moment";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
-import ProfileAvatar from "@/components/ProfileAvatar";
+import AvatarCard from "@/components/AvatarCard";
 
 // export const metadata = {
 //   title: "iChat-Home",
@@ -32,8 +31,6 @@ const ChatPage = () => {
   const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
 
   const endOfMEssagesRef = useRef(null);
-
-  const router = useRouter();
 
   useEffect(() => {
     const newSocket = io(process.env.NEXT_PUBLIC_CHAT_SERVER_URL, {
@@ -57,11 +54,10 @@ const ChatPage = () => {
     return () => newSocket.close();
   }, [chatMsgs]);
 
-
   const getUerData = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get(process.env.NEXT_PUBLIC_GET_USERS_URL, {
+      const res = await axios.get(process.env.NEXT_PUBLIC_USERS_API, {
         withCredentials: true,
       });
       updateUsers(res.data);
@@ -100,9 +96,6 @@ const ChatPage = () => {
     if (e.key === "Enter") sendMsg();
   };
 
-  const handleLogout = () => {
-    router.replace("/");
-  };
   const scrollToBottom = () => {
     endOfMEssagesRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -110,7 +103,7 @@ const ChatPage = () => {
   return (
     <div>
       <div className="flex h-screen antialiased text-gray-800">
-        <div className="flex flex-row h-full w-full overflow-x-hidden">
+        <div className="flex flex-row h-full w-full overflow-x-auto">
           <div className="flex flex-col py-8 pl-6 pr-2 w-64 bg-white flex-shrink-0">
             <div className="flex flex-row items-center justify-center h-12 w-full">
               <div className="flex items-center justify-center rounded-2xl text-indigo-700 bg-indigo-100 h-10 w-10">
@@ -129,31 +122,7 @@ const ChatPage = () => {
               </div>
               <div className="ml-2 font-bold text-2xl">iChat</div>
             </div>
-            <div className="flex flex-col items-center bg-indigo-100 border border-gray-200 mt-4 w-full py-6 px-4 rounded-lg">
-              {/* <div className="h-20 w-20 rounded-full border overflow-hidden">
-                <img
-                  src="https://img.freepik.com/free-photo/3d-illustration-teenager-with-funny-face-glasses_1142-50955.jpg?t=st=1713610133~exp=1713613733~hmac=561d695ad58c4f6fbe0d872af0f088d76e72b43ad3489ec1aff68190a35ba5d7&w=740"
-                  alt="Avatar"
-                  className="h-full w-full"
-                />
-              </div> */}
-              <div className="relative inline-block">
-                <ProfileAvatar />
-              </div>
-
-              <div className="text-sm font-semibold mt-2">{authName}</div>
-              <div className="text-xs text-gray-500">Software Developer</div>
-
-              <div className="flex flex-row items-center mt-3">
-                <div className="flex flex-col justify-center h-4 w-8 bg-indigo-500 rounded-full">
-                  <div className="h-3 w-3 bg-white rounded-full self-end mr-1"></div>
-                </div>
-                <div className="leading-none ml-1 text-xs">Active</div>
-                <div className="leading-none ml-1 text-xs text-cyan-50  bg-red-500 rounded-md h-2 p-3 flex justify-center items-center">
-                  <button onClick={handleLogout}>Logout</button>
-                </div>
-              </div>
-            </div>
+            <AvatarCard authName={authName} />
             <div className="flex flex-col mt-8">
               <div className="flex flex-row items-center justify-between text-xs">
                 <span className="font-bold">Active Conversations</span>
@@ -162,15 +131,10 @@ const ChatPage = () => {
                 </span>
               </div>
               <Spin spinning={isLoading}>
-                <div className="flex flex-col space-y-1 mt-4 -mx-2 h-48 overflow-y-auto">
+                <div className="flex flex-col space-y-1 mt-4 -mx-2 h-52 overflow-y-auto">
                   <ChatUsers />
 
-                  {/* <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
-                    H
-                  </div>
-                  <div className="ml-2 text-sm font-semibold">Henry Boyd</div>
-                </button>
+                  {/* 
                 <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
                   <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
                     M
@@ -180,28 +144,7 @@ const ChatPage = () => {
                     2
                   </div>
                 </button>
-                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div className="flex items-center justify-center h-8 w-8 bg-orange-200 rounded-full">
-                    P
-                  </div>
-                  <div className="ml-2 text-sm font-semibold">
-                    Philip Tucker
-                  </div>
-                </button>
-                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div className="flex items-center justify-center h-8 w-8 bg-pink-200 rounded-full">
-                    C
-                  </div>
-                  <div className="ml-2 text-sm font-semibold">
-                    Christine Reid
-                  </div>
-                </button>
-                <button className="flex flex-row items-center hover:bg-gray-100 rounded-xl p-2">
-                  <div className="flex items-center justify-center h-8 w-8 bg-purple-200 rounded-full">
-                    J
-                  </div>
-                  <div className="ml-2 text-sm font-semibold">Jerry Guzman</div>
-                </button> */}
+                 */}
                 </div>
               </Spin>
               {/* <div className="flex flex-row items-center justify-between text-xs mt-6">

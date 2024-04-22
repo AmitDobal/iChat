@@ -7,12 +7,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx nodemon index.js",
-    "dev": "npx nodemon index.js"
+    "dev": "concurrently \"npm start --prefix ../api-gateway\" \"npm start --prefix ../auth-service\" \"npm start\"",
+    "all": "concurrently \"npm start --prefix ../api-gateway\" \"npm start --prefix ../auth-service\" \"npm run dev --prefix ../frontend\" \"npm start\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "concurrently": "^8.2.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

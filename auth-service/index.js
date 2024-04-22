@@ -7,6 +7,9 @@ import mongoDBConnection from "./db/mongoDBConnection.js";
 import authRouter from "./routes/auth.route.js";
 import usersRouter from "./routes/users.route.js";
 
+import http from "http"
+import { Server } from "socket.io"
+
 const app = express();
 dotenv.config();
 
@@ -18,6 +21,44 @@ app.use(
     credentials: true,
   })
 );
+
+//remove
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        allowedHeaders: ["*"],
+        origin: "*"
+      }
+ });
+
+// user - socket 
+// one to one messaging - sender and receiver
+
+const userSocketMap = {};
+
+io.on("connection", (socket) => {
+   console.log('Client connected');
+   const username = socket.handshake.query.username;
+   console.log('Username:', username);
+
+   userSocketMap[username] = socket;
+   
+   socket.on('chat msg', (msg) => {
+    console.log(msg.sender);
+    console.log(msg.receiver);
+    console.log(msg.textMsg);
+    console.log(msg);
+    const receiverSocket = userSocketMap[msg.receiver];
+    if(receiverSocket) {
+        receiverSocket.emit('chat msg', msg.textMsg);
+    }
+    //socket.broadcast.emit('chat msg', msg.textMsg);
+});
+
+})
+
+//remove
+
 app.use(express.json());
 app.use(cookieParser());
 

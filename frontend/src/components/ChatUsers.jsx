@@ -58,7 +58,6 @@ const ChatUsers = () => {
 
   return (
     <>
-      {console.log("displayUsers", displayUsers)}
       {displayUsers?.map((user) => (
         <button
           key={user._id}
@@ -67,7 +66,6 @@ const ChatUsers = () => {
             activeUser === user?.username && "bg-gray-100"
           } `}>
           <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
-            {/* {user?.username.charAt(0).toUpperCase()} */}
             <img
               src={user.profilePic}
               alt="Avatar"

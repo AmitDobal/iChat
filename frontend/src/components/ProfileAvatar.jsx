@@ -35,7 +35,7 @@ const ProfileAvatart = () => {
     try {
       setConfirmLoading(true);
       await axios.post(
-        `${process.env.NEXT_PUBLIC_GET_USERS_URL}/userpic`,
+        `${process.env.NEXT_PUBLIC_USERS_API}/userpic`,
         {
           username: authName,
           picURL: imageUrl,

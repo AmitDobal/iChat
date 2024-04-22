@@ -22,7 +22,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     allowedHeaders: ["*"],
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://localhost:3001"],
   },
 });
 
@@ -38,12 +38,12 @@ io.on("connection", (socket) => {
   socket.on("chat msg", (msg) => {
     const receiverSocket = userSocketMap[msg?.receiver];
     console.log("MMMSGGGG: ", JSON.stringify(msg));
+    addMsgToConversation([msg.sender, msg.receiver], {
+      text: msg.text,
+      sender: msg.sender,
+      receiver: msg.receiver,
+    });
     if (receiverSocket) {
-      addMsgToConversation([msg.sender, msg.receiver], {
-        text: msg.text,
-        sender: msg.sender,
-        receiver: msg.receiver,
-      });
       receiverSocket.emit("chat msg", msg);
     }
   });

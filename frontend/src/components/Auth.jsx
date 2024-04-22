@@ -19,7 +19,7 @@ const Auth = () => {
     try {
       if (!isUsernamePwdValid()) return;
       const res = await axios.post(
-        process.env.NEXT_PUBLIC_AUTH_SIGNUP_URL,
+        process.env.NEXT_PUBLIC_AUTH_SIGNUP_API,
         {
           username,
           password,
@@ -43,7 +43,7 @@ const Auth = () => {
     try {
       if (!isUsernamePwdValid()) return;
       const res = await axios.post(
-        process.env.NEXT_PUBLIC_AUTH_LOGIN_URL,
+        process.env.NEXT_PUBLIC_AUTH_LOGIN_API,
         {
           username,
           password,
