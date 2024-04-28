@@ -6,7 +6,7 @@ const AvatarCard = ({ authName }) => {
   const router = useRouter();
 
   const handleLogout = () => {
-    router.replace("/");
+    router.push("/");
   };
   return (
     <div className="flex flex-col items-center bg-indigo-100 border border-gray-200 mt-4 w-full py-6 px-4 rounded-lg">

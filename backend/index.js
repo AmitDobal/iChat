@@ -6,6 +6,7 @@ import { Server } from "socket.io";
 import mongoDBConnection from "./db/mongoDBConnection.js";
 import { addMsgToConversation } from "./controllers/msgs.controller.js";
 import msgsRouter from "./routes/msgs.route.js";
+import { publish, subscribe } from "./redis/msgsPubSub.js";
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: [`${process.env.BE_HOST}:3000`, `${process.env.BE_HOST}:3001`],
     credentials: true,
   })
 );
@@ -22,22 +23,31 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     allowedHeaders: ["*"],
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: [`${process.env.BE_HOST}:3000`, `${process.env.BE_HOST}:3001`],
   },
 });
 
 const userSocketMap = {};
 io.on("connection", (socket) => {
-  console.log("Clien Connected: " + socket.id);
+  console.log("Client Connected: " + socket.id);
 
   const username = socket.handshake.query.username;
-  console.log("Username: ", username);
+  io.emit("active",{username, isActive: true})
+  //Subscribed
+  const channelName = `chat_${username}`;
+  subscribe(channelName, (msg) => {
+    try {
+      socket.emit("chat msg", JSON.parse(msg));
+    } catch (error) {
+      console.log("Error during subscribe callback: " + channelName, error.message);
+    }
+  });
 
   userSocketMap[username] = socket;
 
   socket.on("chat msg", (msg) => {
     const receiverSocket = userSocketMap[msg?.receiver];
-    console.log("MMMSGGGG: ", JSON.stringify(msg));
+    // console.log("MMMSGGGG: ", JSON.stringify(msg));
     addMsgToConversation([msg.sender, msg.receiver], {
       text: msg.text,
       sender: msg.sender,
@@ -45,7 +55,14 @@ io.on("connection", (socket) => {
     });
     if (receiverSocket) {
       receiverSocket.emit("chat msg", msg);
+    } else {
+      const channelName = `chat_${msg.receiver}`;
+      publish(channelName, JSON.stringify(msg));
     }
+  });
+  socket.on("disconnect", () => {
+    io.emit("active",{username, isActive: false})
+    console.log("Client disconnected: " + socket.id);
   });
 });
 app.use("/msgs", msgsRouter);
@@ -56,5 +73,5 @@ app.get("/", (req, res) => {
 
 server.listen(PORT, () => {
   mongoDBConnection();
-  console.log(`Chat backend server is running on http://localhost:${PORT}`);
+  console.log(`Chat backend server is running on ${process.env.BE_HOST}:${PORT}`);
 });

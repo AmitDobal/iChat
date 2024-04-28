@@ -1,28 +1,35 @@
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
-import useUsersStore from "@/zustand/useUsersStore";
+import { useUsersStore } from "@/zustand/useUsersStore";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const ChatUsers = () => {
+const ChatUsers = ({  }) => {
   const [displayUsers, setDisplayUsers] = useState([]);
   const [activeUser, setActiveUser] = useState(null);
 
-  const { users } = useUsersStore();
+  const { users,activeUsersMap } = useUsersStore();
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =
     useChatReceiverStore();
   const { authName } = useAuthStore();
-  const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
+  const { updateChatMsgs } = useChatMsgsStore();
 
   useEffect(() => {
     if (chatReceiver) getMSgs();
   }, [chatReceiver]);
 
   useEffect(() => {
-    const usersList = users.filter((user) => user.username != authName);
+    let usersList = users.filter((user) => user.username != authName);
+    // usersList.forEach((user) => {
+    //   let actUser = activeUsers.find((usr) => usr.username === user.username);
+    //   if (actUser) user.isActive = actUser.isActive;
+    //   else user.isActive = false;
+    // });
+    // console.log("use DISPLAY USERS: ", activeUsers);
+    console.log("CHAT USER ACTIVE MAAAP:",activeUsersMap)
     setDisplayUsers(usersList);
-  }, [users]);
+  }, [users, activeUsersMap]);
 
   const getMSgs = async () => {
     try {
@@ -36,14 +43,13 @@ const ChatUsers = () => {
         },
         { withCredentials: true }
       );
-      console.log(res.data);
       if (res.data?.length !== 0) {
         updateChatMsgs(res.data);
       } else {
         updateChatMsgs([]);
       }
     } catch (error) {
-      console.log(
+      console.error(
         "Error in geting the chat conversation messages: ",
         error.message
       );
@@ -58,6 +64,8 @@ const ChatUsers = () => {
 
   return (
     <>
+      {console.log("AACTIVEEeeeeeeee USERRRRR RENDER:", activeUsersMap)}
+      {/* {console.log(displayUsers)} */}
       {displayUsers?.map((user) => (
         <button
           key={user._id}
@@ -73,6 +81,11 @@ const ChatUsers = () => {
             />
           </div>
           <div className="ml-2 text-sm font-semibold">{user.username}</div>
+          <span
+            className={`${
+              activeUsersMap && activeUsersMap[user.username] ? " bg-green-500 " : " bg-slate-400 "
+            } h-3 w-3 rounded-full ml-2 `}
+          />
         </button>
       ))}
     </>

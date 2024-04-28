@@ -2,24 +2,28 @@ version: "3.8"
 
 services:
   backend:
+    image: amitdobal14/ichat-backend:lts
     build:
       context: ./backend # Path to the backend Dockerfile
     ports:
       - "8080:8080"
 
   backend2:
+    image: amitdobal14/ichat-backend2:lts
     build:
       context: ./backend # Path to the backend Dockerfile
     ports:
       - "8084:8080"
 
   auth-backend:
+    image: amitdobal14/ichat-auth-service:lts
     build:
       context: ./auth-service # Path to the backend Dockerfile
     ports:
       - "8081:8081"
 
   frontend:
+    image: amitdobal14/ichat-frontend:lts
     build:
       context: ./frontend # Path to the frontend Dockerfile
     ports:
@@ -28,6 +32,7 @@ services:
       - backend # Wait for backend service to be ready before starting frontend
 
   frontend2:
+    image: amitdobal14/ichat-frontend2:lts
     build:
       context: ./frontend2 # Path to the frontend Dockerfile
     ports:
