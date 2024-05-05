@@ -1,3 +1,4 @@
+"use client";
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
@@ -5,11 +6,11 @@ import { useUsersStore } from "@/zustand/useUsersStore";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const ChatUsers = ({  }) => {
+const ChatUsers = ({ usersActiveMap }) => {
   const [displayUsers, setDisplayUsers] = useState([]);
   const [activeUser, setActiveUser] = useState(null);
 
-  const { users,activeUsersMap } = useUsersStore();
+  const { users } = useUsersStore();
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =
     useChatReceiverStore();
   const { authName } = useAuthStore();
@@ -21,15 +22,8 @@ const ChatUsers = ({  }) => {
 
   useEffect(() => {
     let usersList = users.filter((user) => user.username != authName);
-    // usersList.forEach((user) => {
-    //   let actUser = activeUsers.find((usr) => usr.username === user.username);
-    //   if (actUser) user.isActive = actUser.isActive;
-    //   else user.isActive = false;
-    // });
-    // console.log("use DISPLAY USERS: ", activeUsers);
-    console.log("CHAT USER ACTIVE MAAAP:",activeUsersMap)
     setDisplayUsers(usersList);
-  }, [users, activeUsersMap]);
+  }, [users, usersActiveMap]);
 
   const getMSgs = async () => {
     try {
@@ -64,8 +58,6 @@ const ChatUsers = ({  }) => {
 
   return (
     <>
-      {console.log("AACTIVEEeeeeeeee USERRRRR RENDER:", activeUsersMap)}
-      {/* {console.log(displayUsers)} */}
       {displayUsers?.map((user) => (
         <button
           key={user._id}
@@ -83,7 +75,9 @@ const ChatUsers = ({  }) => {
           <div className="ml-2 text-sm font-semibold">{user.username}</div>
           <span
             className={`${
-              activeUsersMap && activeUsersMap[user.username] ? " bg-green-500 " : " bg-slate-400 "
+              user?.activeStatus === 1 || usersActiveMap[user.username] === true
+                ? " bg-green-500 "
+                : " bg-slate-400 "
             } h-3 w-3 rounded-full ml-2 `}
           />
         </button>

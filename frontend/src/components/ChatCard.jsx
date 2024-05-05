@@ -1,10 +1,9 @@
 import React from "react";
 import moment from "moment";
 
-const ChatCard = ({ key, text, picSrc, createdAt, isLeft, bgColor }) => {
+const ChatCard = ({ text, picSrc, createdAt, isLeft, bgColor }) => {
   return (
     <div
-      key={key}
       className={`${
         isLeft ? "col-start-1 col-end-8 " : "col-start-6 col-end-13 "
       }  p-3 rounded-lg`}>

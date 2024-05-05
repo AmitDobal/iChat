@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5001;
 
 app.use(
   cors({
-    origin: [`${process.env.BE_HOST}:3000`, `${process.env.BE_HOST}:3001`],
+    origin: [`${process.env.BE_HOST}:3000`, `${process.env.BE_HOST}:3001`, `${process.env.BE_HOST}:8080`],
     credentials: true,
   })
 );
@@ -44,10 +44,6 @@ io.on("connection", (socket) => {
   userSocketMap[username] = socket;
 
   socket.on("chat msg", (msg) => {
-    console.log(msg.sender);
-    console.log(msg.receiver);
-    console.log(msg.textMsg);
-    console.log(msg);
     const receiverSocket = userSocketMap[msg.receiver];
     if (receiverSocket) {
       receiverSocket.emit("chat msg", msg.textMsg);

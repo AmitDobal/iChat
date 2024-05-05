@@ -56,7 +56,7 @@ const ProfileAvatart = () => {
   const picURL = () => {
     if (updatedPicURL) return updatedPicURL;
     if (authPicURL) return authPicURL;
-    return "https://img.freepik.com/free-photo/3d-illustration-teenager-with-funny-face-glasses_1142-50955.jpg?t=st=1713610133~exp=1713613733~hmac=561d695ad58c4f6fbe0d872af0f088d76e72b43ad3489ec1aff68190a35ba5d7&w=740";
+    return "https://img.freepik.com/premium-vector/secret-agent-icon-flat-vector-call-person-headset-center-isolated_98396-60823.jpg?w=740";
   };
   return (
     <>

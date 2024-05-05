@@ -7,6 +7,7 @@ import mongoDBConnection from "./db/mongoDBConnection.js";
 import { addMsgToConversation } from "./controllers/msgs.controller.js";
 import msgsRouter from "./routes/msgs.route.js";
 import { publish, subscribe } from "./redis/msgsPubSub.js";
+import { updateUserActiveStatus } from "./controllers/users.controller.js";
 
 dotenv.config();
 
@@ -29,17 +30,21 @@ const io = new Server(server, {
 
 const userSocketMap = {};
 io.on("connection", (socket) => {
-  console.log("Client Connected: " + socket.id);
-
+  
   const username = socket.handshake.query.username;
-  io.emit("active",{username, isActive: true})
+  console.log("Client Connected: " + socket.id, username);
+  io.emit("active", { username, activeStatus: true });
+  updateUserActiveStatus(username, "ONLINE");
   //Subscribed
   const channelName = `chat_${username}`;
   subscribe(channelName, (msg) => {
     try {
       socket.emit("chat msg", JSON.parse(msg));
     } catch (error) {
-      console.log("Error during subscribe callback: " + channelName, error.message);
+      console.log(
+        "Error during subscribe callback: " + channelName,
+        error.message
+      );
     }
   });
 
@@ -47,7 +52,6 @@ io.on("connection", (socket) => {
 
   socket.on("chat msg", (msg) => {
     const receiverSocket = userSocketMap[msg?.receiver];
-    // console.log("MMMSGGGG: ", JSON.stringify(msg));
     addMsgToConversation([msg.sender, msg.receiver], {
       text: msg.text,
       sender: msg.sender,
@@ -61,7 +65,8 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("disconnect", () => {
-    io.emit("active",{username, isActive: false})
+    io.emit("active", { username, activeStatus: false });
+    updateUserActiveStatus(username, "OFFLINE");
     console.log("Client disconnected: " + socket.id);
   });
 });
@@ -73,5 +78,7 @@ app.get("/", (req, res) => {
 
 server.listen(PORT, () => {
   mongoDBConnection();
-  console.log(`Chat backend server is running on ${process.env.BE_HOST}:${PORT}`);
+  console.log(
+    `Chat backend server is running on ${process.env.BE_HOST}:${PORT}`
+  );
 });

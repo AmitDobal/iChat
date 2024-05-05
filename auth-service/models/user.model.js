@@ -13,6 +13,11 @@ const userSchema = mongoose.Schema({
   profilePic: {
     type: String,
   },
+  activeStatus: {
+    type: Number,
+    enum: [0, 1, 2],
+    default: 0,
+  },
 });
 
 const userModel = mongoose.model("User", userSchema);
