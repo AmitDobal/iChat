@@ -17,6 +17,8 @@ import { LuSend } from "react-icons/lu";
 import { ImAttachment } from "react-icons/im";
 import Upload from "antd/es/upload/Upload";
 import { useRouter } from "next/navigation";
+import SearchInput from "@/components/SearchChatUser";
+import GroupModal from "@/components/GroupModal";
 
 const ChatPage = () => {
   const [socket, setSocket] = useState(null);
@@ -168,6 +170,7 @@ const ChatPage = () => {
                 <div className="ml-2 font-bold text-2xl">iChat</div>
               </div>
               <AvatarCard authName={authName} />
+              <GroupModal/>
               <div className="flex flex-col mt-8">
                 <div className="flex flex-row items-center justify-between text-xs">
                   <span className="font-bold">Active Conversations</span>
@@ -175,6 +178,7 @@ const ChatPage = () => {
                     {users?.length ? users?.length - 1 : 0}
                   </span>
                 </div>
+              <SearchInput/>
                 <Spin spinning={isLoading}>
                   <div className="flex flex-col space-y-1 mt-4 -mx-2 h-52 overflow-y-auto">
                     <ChatUsers usersActiveMap={usersActiveMap} />

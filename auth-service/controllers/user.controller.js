@@ -37,3 +37,20 @@ export const updateActiveStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const serchUser = async (req, res) => {
+  try {
+    const { name } = req.query;
+    const users = await User.find({
+      username: { $regex: new RegExp(name, "i") },
+    })
+      .select("-password")
+      .limit(5)
+      .sort({ username: 1 });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.log("Error while serching the user: ", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
