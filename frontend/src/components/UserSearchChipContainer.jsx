@@ -15,7 +15,7 @@ const UserSearchChipContainer = () => {
   return (
     <>
       <div className=" w-full">
-        <SearchChatUser width="100%" setUsersAdded={setUsersAdded} />
+        <SearchChatUser width="100%" usersAdded={usersAdded} setUsersAdded={setUsersAdded} />
       </div>
       <div className="  w-full overflow-y-auto">
         {usersAdded?.map((user) => (

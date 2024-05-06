@@ -178,7 +178,7 @@ const ChatPage = () => {
                     {users?.length ? users?.length - 1 : 0}
                   </span>
                 </div>
-              <SearchInput/>
+              {/* <SearchInput/> */}
                 <Spin spinning={isLoading}>
                   <div className="flex flex-col space-y-1 mt-4 -mx-2 h-52 overflow-y-auto">
                     <ChatUsers usersActiveMap={usersActiveMap} />

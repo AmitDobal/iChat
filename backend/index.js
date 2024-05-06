@@ -14,6 +14,7 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 
 const app = express();
+app.use(express.json());
 app.use(
   cors({
     origin: [`${process.env.BE_HOST}:3000`, `${process.env.BE_HOST}:3001`],
@@ -30,7 +31,6 @@ const io = new Server(server, {
 
 const userSocketMap = {};
 io.on("connection", (socket) => {
-  
   const username = socket.handshake.query.username;
   console.log("Client Connected: " + socket.id, username);
   io.emit("active", { username, activeStatus: true });

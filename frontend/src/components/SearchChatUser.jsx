@@ -3,7 +3,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import ChatUser from "./ChatUser";
 
-const SearchChatUser = ({ width = "auto", setUsersAdded }) => {
+const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {
   const [value, setValue] = useState("");
   const [options, setOptions] = useState([]);
   const [searchedUsers, setSearchedUsers] = useState([]);
@@ -17,7 +17,12 @@ const SearchChatUser = ({ width = "auto", setUsersAdded }) => {
 
   const handleSearch = async (searchText) => {
     if (searchText?.length > 0) {
-      const users = await getSearchedUser(searchText);
+      const resUsers = await getSearchedUser(searchText);
+      const addedUsersId = usersAdded?.map((user) => user._id);
+      const users = resUsers.filter(
+        (user) => !addedUsersId?.includes(user._id)
+      );
+
       setSearchedUsers(users);
       const usernames = users?.map((user) => ({
         value: `${user._id}`,
