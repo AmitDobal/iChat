@@ -14,10 +14,10 @@ const ChatUsers = ({ usersActiveMap }) => {
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =
     useChatReceiverStore();
   const { authName } = useAuthStore();
-  const { updateChatMsgs } = useChatMsgsStore();
+  const { updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
 
   useEffect(() => {
-    if (chatReceiver) getMSgs();
+    if (chatReceiver && isChatMsgTabActive) getMSgs();
   }, [chatReceiver]);
 
   useEffect(() => {
@@ -42,6 +42,7 @@ const ChatUsers = ({ usersActiveMap }) => {
       } else {
         updateChatMsgs([]);
       }
+      console.log("Chats msgs:", res.data);
     } catch (error) {
       console.error(
         "Error in geting the chat conversation messages: ",

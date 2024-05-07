@@ -10,15 +10,15 @@ const ChatCards = ({
 }) => {
   return (
     <>
-      {chatMsgs.map((currentMsg, i) => (
+      {chatMsgs?.map((currentMsg, i) => (
         <React.Fragment key={i}>
           {currentMsg?.sender !== authName ? (
             <>
               {currentMsg?.sender === chatReceiver && (
                 <ChatCard
-                  text={currentMsg.text}
+                  text={currentMsg?.text}
                   picSrc={chatReceiverPicURL}
-                  createdAt={currentMsg.createdAt}
+                  createdAt={currentMsg?.createdAt}
                   isLeft={true}
                   bgColor="bg-white"
                 />
@@ -26,9 +26,9 @@ const ChatCards = ({
             </>
           ) : (
             <ChatCard
-              text={currentMsg.text}
+              text={currentMsg?.text}
               picSrc={authPicURL}
-              createdAt={currentMsg.createdAt}
+              createdAt={currentMsg?.createdAt}
               isLeft={false}
               bgColor="bg-indigo-100"
             />

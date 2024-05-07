@@ -52,12 +52,11 @@ export const createGroupConversation = async (req, res) => {
 };
 export const addMsgToGroupConversation = async (groupID, msg) => {
   try {
-    let conversation = await GroupConversation.findOne({
-      users: { $all: participants },
-    });
-
-    if (!conversation)
-      conversation = await Conversation.create({ users: participants });
+    let conversation = await GroupConversation.findOne({ _id: groupID });
+    if (!conversation) {
+      console.log("No group found ");
+      return;
+    }
     conversation.msgs.push(msg);
     await conversation.save();
   } catch (error) {
@@ -75,6 +74,18 @@ export const getGroupMsgsForConversation = async (req, res) => {
   } catch (error) {
     console.log("Error getGroupMsgsForConversation: ", error.message);
     return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getGroupUsersUsername = async (groupId) => {
+  try {
+    const usersID = await GroupConversation.findById(groupId)
+      .select("users")
+      .populate({ path: "users", select: "username" });
+    return usersID;
+  } catch (error) {
+    console.log("Error getGroupUsersId: ", error.message);
+    return null;
   }
 };
 

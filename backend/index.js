@@ -4,7 +4,11 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { Server } from "socket.io";
 import mongoDBConnection from "./db/mongoDBConnection.js";
-import { addMsgToConversation } from "./controllers/msgs.controller.js";
+import {
+  addMsgToConversation,
+  addMsgToGroupConversation,
+  getGroupUsersUsername,
+} from "./controllers/msgs.controller.js";
 import msgsRouter from "./routes/msgs.route.js";
 import { publish, subscribe } from "./redis/msgsPubSub.js";
 import { updateUserActiveStatus } from "./controllers/users.controller.js";
@@ -50,6 +54,7 @@ io.on("connection", (socket) => {
 
   userSocketMap[username] = socket;
 
+  //CHAT
   socket.on("chat msg", (msg) => {
     const receiverSocket = userSocketMap[msg?.receiver];
     addMsgToConversation([msg.sender, msg.receiver], {
@@ -64,6 +69,36 @@ io.on("connection", (socket) => {
       publish(channelName, JSON.stringify(msg));
     }
   });
+  //GROUP
+  socket.on("group msg", (msg) => {
+    const membersUsername = getMembersUsername(msg.groupId);
+    addMsgToGroupConversation(msg.groupId, msg);
+    // console.log(membersUsername);
+
+    // menmbersUsername.forEach((member) => {
+    //   console.log(member.username);
+    // });
+
+    // const receiverSocket = userSocketMap[msg?.receiver];
+    // addMsgToConversation([msg.sender, msg.receiver], {
+    //   text: msg.text,
+    //   sender: msg.sender,
+    //   receiver: msg.receiver,
+    // });
+    // if (receiverSocket) {
+    //   receiverSocket.emit("chat msg", msg);
+    // } else {
+    //   const channelName = `chat_${msg.receiver}`;
+    //   publish(channelName, JSON.stringify(msg));
+    // }
+  });
+
+  const getMembersUsername = async (groupId) => {
+    const membersUsername = await getGroupUsersUsername(groupId);
+    return membersUsername;
+  };
+
+  //DISCONNECT
   socket.on("disconnect", () => {
     io.emit("active", { username, activeStatus: false });
     updateUserActiveStatus(username, "OFFLINE");

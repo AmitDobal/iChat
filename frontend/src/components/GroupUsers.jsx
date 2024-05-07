@@ -9,17 +9,18 @@ import React, { useEffect, useState } from "react";
 
 const GroupUsers = () => {
   const [displayUsers, setDisplayUsers] = useState([]);
-  const [activeUser, setActiveUser] = useState(null);
+  const [activeGroup, setActiveGroup] = useState(null);
 
   const { users } = useUsersStore();
   const { groups } = useGroupsStore();
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =
     useChatReceiverStore();
   const { authName } = useAuthStore();
-  const { updateChatMsgs } = useChatMsgsStore();
+  const { updateChatMsgs ,isChatMsgTabActive} = useChatMsgsStore();
+  
 
   useEffect(() => {
-    if (chatReceiver) getMSgs();
+    if (chatReceiver && !isChatMsgTabActive) getMSgs();
   }, [chatReceiver]);
 
   useEffect(() => {
@@ -30,20 +31,21 @@ const GroupUsers = () => {
   const getMSgs = async () => {
     try {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_CHAT_SERVER_URL}/msgs`,
+        `${process.env.NEXT_PUBLIC_CHAT_SERVER_URL}/msgs/group`,
         {
           params: {
-            sender: authName,
-            receiver: chatReceiver,
+            groupId: activeGroup,
           },
         },
         { withCredentials: true }
       );
-      if (res.data?.length !== 0) {
-        updateChatMsgs(res.data);
+      const groupChatMsgs = res.data?.msgs
+      if (groupChatMsgs?.length !== 0) {
+        updateChatMsgs(groupChatMsgs);
       } else {
         updateChatMsgs([]);
       }
+    console.log("Group msgs:",res.data, groupChatMsgs)
     } catch (error) {
       console.error(
         "Error in geting the chat conversation messages: ",
@@ -52,30 +54,30 @@ const GroupUsers = () => {
     }
   };
 
-  const handleClick = (user) => {
-    updateChatReceiver(user.username);
-    setActiveUser(user.username);
-    updateChatReceiverPicURL(user.profilePic);
+  const handleClick = (group) => {
+    updateChatReceiver(group._id);
+    setActiveGroup(group._id);
+    updateChatReceiverPicURL(group.groupPic);
   };
 
   return (
     <>
-      {console.log("GROUPS DATA: ", groups)}
-      {displayUsers?.map((group) => (
+      {/* {console.log("GROUPS DATA: ", groups)} */}
+      {groups?.map((group) => (
         <button
           key={group._id}
           onClick={() => handleClick(group)}
           className={`flex flex-row items-center hover:bg-gray-100  rounded-xl p-2 ${
-            activeUser === group?.username && "bg-gray-100"
+            activeGroup === group?._id && "bg-gray-100"
           } `}>
           <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
             <img
-              src={group.profilePic}
+              src={group.groupPic}
               alt="Avatar"
               className="rounded-full w-8 h-8 object-cover"
             />
           </div>
-          <div className="ml-2 text-sm font-semibold">{group.username}</div>
+          <div className="ml-2 text-sm font-semibold">{group.groupName}</div>
         </button>
       ))}
     </>

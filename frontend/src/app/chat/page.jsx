@@ -137,13 +137,25 @@ const ChatPage = () => {
   };
 
   const sendMsg = () => {
+    // const msgToBeSent = {
+    //   text: msg,
+    //   sender: authName,
+    //   receiver: chatReceiver,
+    // };
+    // if (socket) {
+    //   socket.emit("chat msg", msgToBeSent);
+    //   updateChatMsgs([...chatMsgs, msgToBeSent]);
+    //   setMsg("");
+    //   closeEmojis();
+    // }
+
     const msgToBeSent = {
+      groupId: chatReceiver,
       text: msg,
       sender: authName,
-      receiver: chatReceiver,
     };
     if (socket) {
-      socket.emit("chat msg", msgToBeSent);
+      socket.emit("group msg", msgToBeSent);
       updateChatMsgs([...chatMsgs, msgToBeSent]);
       setMsg("");
       closeEmojis();

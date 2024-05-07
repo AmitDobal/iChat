@@ -54,7 +54,7 @@ const GroupModal = () => {
   };
   return (
     <div>
-      <Button size="small" onClick={showModal} type="primary">
+      <Button size="small" onClick={showModal} type="text">
         <MdOutlineAddBox />
       </Button>
       <Modal
