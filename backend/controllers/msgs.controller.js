@@ -69,11 +69,24 @@ export const getGroupMsgsForConversation = async (req, res) => {
     const { groupId } = req.query;
     const conversation = await GroupConversation.findById(groupId).populate({
       path: "users",
-      select: "username profilePic"
+      select: "username profilePic",
     });
     return res.status(200).json(conversation);
   } catch (error) {
     console.log("Error getGroupMsgsForConversation: ", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getGroups = async (req, res) => {
+  try {
+    const groups = await GroupConversation.find().populate({
+      path: "users",
+      select: "username profilePic",
+    });
+    return res.status(200).json(groups);
+  } catch (error) {
+    console.log("Error getGroups: ", error.message);
     return res.status(500).json({ error: error.message });
   }
 };

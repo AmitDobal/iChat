@@ -1,26 +1,46 @@
-import { Button, Modal, Tag } from "antd";
+import { Button, Modal, Tag, message } from "antd";
 import React, { useState } from "react";
-import SearchChatUser from "./SearchChatUser";
 import UserSearchChipContainer from "./UserSearchChipContainer";
+import { MdOutlineAddBox } from "react-icons/md";
+import axios from "axios";
 
 const GroupModal = () => {
-  const [input, setInput] = useState({});
+  const [input, setInput] = useState({
+    groupName: "",
+    groupPic: "",
+  });
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [usersAdded, setUsersAdded] = useState([]);
   const showModal = () => {
     setOpen(true);
   };
   const handleOk = () => {
-    setModalText("The modal will be closed after two seconds");
     setConfirmLoading(true);
-    setTimeout(() => {
+    createGroup();
+  };
+
+  const createGroup = async () => {
+    try {
+      const body = { ...input, users: usersAdded };
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_CHAT_SERVER_URL}/msgs/group`,
+        body
+      );
+      console.log("Created Group ID: ", res.data);
       setOpen(false);
       setConfirmLoading(false);
-    }, 2000);
+      setInitialState();
+      message.success("Group created successfully!");
+    } catch (error) {
+      console.error("Error while creating the group", error.message);
+      setConfirmLoading(false);
+      message.error("Group not created!");
+    }
   };
   const handleCancel = () => {
-    console.log("Clicked cancel button");
     setOpen(false);
+    setInitialState();
   };
   const handleInput = (e) => {
     setInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -28,14 +48,14 @@ const GroupModal = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
   };
+  const setInitialState = () => {
+    setInput({ groupName: "", groupPic: "" });
+    setUsersAdded([]);
+  };
   return (
-    <div className="mt-2">
-      {console.log(input)}
-      <Button
-        onClick={showModal}
-        type="primary"
-        className=" text-cyan-50 bg-gradient-to-b from-green-600 to-green-700  hover:from-red-600 hover:to-green-700">
-        Create Group
+    <div>
+      <Button size="small" onClick={showModal} type="primary">
+        <MdOutlineAddBox />
       </Button>
       <Modal
         title="Create Group"
@@ -49,6 +69,7 @@ const GroupModal = () => {
             <div className="relative z-0 w-full mb-5 group">
               <input
                 onChange={handleInput}
+                value={input?.groupName}
                 type="text"
                 name="groupName"
                 id="groupName"
@@ -65,6 +86,7 @@ const GroupModal = () => {
             <div className="relative z-0 w-full mb-5 group">
               <input
                 onChange={handleInput}
+                value={input?.groupPic}
                 type="text"
                 name="groupPic"
                 id="groupPic"
@@ -78,7 +100,10 @@ const GroupModal = () => {
               </label>
             </div>
             <div className="flex flex-col h-40 gap-2">
-              <UserSearchChipContainer />
+              <UserSearchChipContainer
+                usersAdded={usersAdded}
+                setUsersAdded={setUsersAdded}
+              />
             </div>
           </form>
         </div>

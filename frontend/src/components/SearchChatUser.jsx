@@ -65,7 +65,7 @@ const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {
         onSearch={handleSearch}
         onBlur={handleBlur}
         size="large"
-        placeholder="Search User"
+        placeholder="Search user"
       />
     </div>
   );

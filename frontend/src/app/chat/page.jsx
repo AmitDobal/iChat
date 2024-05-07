@@ -1,5 +1,4 @@
 "use client";
-import ChatUsers from "@/components/ChatUsers";
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
@@ -17,8 +16,9 @@ import { LuSend } from "react-icons/lu";
 import { ImAttachment } from "react-icons/im";
 import Upload from "antd/es/upload/Upload";
 import { useRouter } from "next/navigation";
-import SearchInput from "@/components/SearchChatUser";
-import GroupModal from "@/components/GroupModal";
+
+import ConversationTabs from "@/components/ConversationTabs";
+import { useGroupsStore } from "@/zustand/useGroupsStore";
 
 const ChatPage = () => {
   const [socket, setSocket] = useState(null);
@@ -31,13 +31,14 @@ const ChatPage = () => {
   const [showEmojis, setShowEmojis] = useState(false);
 
   const { authName, authPicURL } = useAuthStore();
-  const { users, updateUsers } =
-    useUsersStore();
+  const { updateUsers } = useUsersStore();
   const chatReceiver = useChatReceiverStore((state) => state.chatReceiver);
   const chatReceiverPicURL = useChatReceiverStore(
     (state) => state.chatReceiverPicURL
   );
   const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
+  const { updateGroups } = useGroupsStore();
+
   const router = useRouter();
   const endOfMEssagesRef = useRef(null);
   useEffect(() => {
@@ -54,9 +55,11 @@ const ChatPage = () => {
         setUsersActive(actUser);
       });
       newSocket.on("chat msg", (msgRecieve) => {
+        console.log("MEssage receved: ", msgRecieve);
         setRecievedMsg(msgRecieve);
       });
-      getUerData();
+      getUsersData();
+      getGroupsData();
       return () => newSocket.close();
     }
   }, [authName]);
@@ -70,11 +73,6 @@ const ChatPage = () => {
   }, [chatMsgs]);
 
   useEffect(() => {
-    const data = {
-      ...usersActiveMap,
-      [usersActive.username]: usersActive.activeStatus,
-    };
-    console.log("Use effect data: ", data);
     setUsersActiveMap((prev) => ({
       ...prev,
       [usersActive.username]: usersActive.activeStatus,
@@ -105,7 +103,7 @@ const ChatPage = () => {
     return isAuthPassed;
   };
 
-  const getUerData = async () => {
+  const getUsersData = async () => {
     try {
       const res = await axios.get(process.env.NEXT_PUBLIC_USERS_API, {
         withCredentials: true,
@@ -116,6 +114,23 @@ const ChatPage = () => {
       // setIsLoading(false);
       console.log(
         "Error while fetching users data from backend:",
+        error.message
+      );
+    }
+  };
+
+  const getGroupsData = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_CHAT_SERVER_URL}/msgs/groups`,
+        {
+          withCredentials: true,
+        }
+      );
+      updateGroups(res.data);
+    } catch (error) {
+      console.log(
+        "Error while fetching Grups data from backend:",
         error.message
       );
     }
@@ -170,21 +185,20 @@ const ChatPage = () => {
                 <div className="ml-2 font-bold text-2xl">iChat</div>
               </div>
               <AvatarCard authName={authName} />
-              <GroupModal/>
-              <div className="flex flex-col mt-8">
+              <ConversationTabs usersActiveMap={usersActiveMap} />
+              {/* <div className="flex flex-col mt-8">
                 <div className="flex flex-row items-center justify-between text-xs">
                   <span className="font-bold">Active Conversations</span>
                   <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
                     {users?.length ? users?.length - 1 : 0}
                   </span>
                 </div>
-              {/* <SearchInput/> */}
                 <Spin spinning={isLoading}>
                   <div className="flex flex-col space-y-1 mt-4 -mx-2 h-52 overflow-y-auto">
                     <ChatUsers usersActiveMap={usersActiveMap} />
                   </div>
                 </Spin>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex flex-col flex-auto h-full p-6 top-2 ">

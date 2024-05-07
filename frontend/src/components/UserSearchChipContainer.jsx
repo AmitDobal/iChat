@@ -4,8 +4,8 @@ import { Tag } from "antd";
 import ChatUser from "./ChatUser";
 import { CloseCircleOutlined } from "@ant-design/icons";
 
-const UserSearchChipContainer = () => {
-  const [usersAdded, setUsersAdded] = useState([]);
+const UserSearchChipContainer = ({usersAdded, setUsersAdded}) => {
+  
 
   const handleChipClose = (user) => {
     const filteredUsers = usersAdded.filter((item) => item._id !== user._id);
