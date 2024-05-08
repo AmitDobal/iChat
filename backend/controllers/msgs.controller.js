@@ -1,5 +1,6 @@
 import Conversation from "../models/chat.model.js";
 import GroupConversation from "../models/groupChat.model.js";
+import User from "../models/user.model.js";
 
 export const addMsgToConversation = async (participants, msg) => {
   try {
@@ -44,7 +45,7 @@ export const createGroupConversation = async (req, res) => {
       users,
     });
     await group.save();
-    res.status(201).json({ groupId: group._id });
+    res.status(201).json(group);
   } catch (error) {
     console.log("Error createGroupConversation:", error.message);
     res.status(500).json({ error: error.message });
@@ -91,7 +92,13 @@ export const getGroupUsersUsername = async (groupId) => {
 
 export const getGroups = async (req, res) => {
   try {
-    const groups = await GroupConversation.find().populate({
+    const { username } = req.query;
+    const user = await User.findOne({ username });
+    if (!user) return res.status(200).json([]);
+
+    const groups = await GroupConversation.find({
+      users: user._id,
+    }).populate({
       path: "users",
       select: "username profilePic",
     });

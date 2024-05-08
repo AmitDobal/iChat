@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import UserSearchChipContainer from "./UserSearchChipContainer";
 import { MdOutlineAddBox } from "react-icons/md";
 import axios from "axios";
+import { useAuthStore } from "@/zustand/useAuthStore";
+import { useGroupsStore } from "@/zustand/useGroupsStore";
 
 const GroupModal = () => {
   const [input, setInput] = useState({
@@ -12,6 +14,10 @@ const GroupModal = () => {
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [usersAdded, setUsersAdded] = useState([]);
+
+  const { authId } = useAuthStore();
+  const { groups, updateGroups } = useGroupsStore();
+
   const showModal = () => {
     setOpen(true);
   };
@@ -22,7 +28,7 @@ const GroupModal = () => {
 
   const createGroup = async () => {
     try {
-      const body = { ...input, users: usersAdded };
+      const body = { ...input, users: [...usersAdded, { _id: authId }] };
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_CHAT_SERVER_URL}/msgs/group`,
         body
@@ -31,6 +37,7 @@ const GroupModal = () => {
       setOpen(false);
       setConfirmLoading(false);
       setInitialState();
+      if (res.status === 201) updateGroups([...groups, res?.data]);
       message.success("Group created successfully!");
     } catch (error) {
       console.error("Error while creating the group", error.message);

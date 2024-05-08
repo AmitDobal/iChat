@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 
 import ConversationTabs from "@/components/ConversationTabs";
 import { useGroupsStore } from "@/zustand/useGroupsStore";
+import GroupChatCards from "@/components/GroupChatCards";
 
 const ChatPage = () => {
   const [socket, setSocket] = useState(null);
@@ -36,7 +37,7 @@ const ChatPage = () => {
   const chatReceiverPicURL = useChatReceiverStore(
     (state) => state.chatReceiverPicURL
   );
-  const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
+  const { chatMsgs, updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
   const { updateGroups } = useGroupsStore();
 
   const router = useRouter();
@@ -99,6 +100,7 @@ const ChatPage = () => {
       console.error("ERROR while verifying token:", error.message);
       isAuthPassed = false;
     }
+    if (!isAuthPassed) router.replace("/");
     if (isAuthPassed) setIsLoading(false);
     return isAuthPassed;
   };
@@ -124,9 +126,15 @@ const ChatPage = () => {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_CHAT_SERVER_URL}/msgs/groups`,
         {
+          params: {
+            username: authName,
+          },
+        },
+        {
           withCredentials: true,
         }
       );
+      console.log("Group data: ", res.data);
       updateGroups(res.data);
     } catch (error) {
       console.log(
@@ -238,14 +246,26 @@ const ChatPage = () => {
                   className="flex flex-col h-full overflow-x-auto mb-4">
                   <div className="flex flex-col h-full">
                     <div className="grid grid-cols-12 gap-y-2 ">
-                      <ChatCards
-                        chatMsgs={chatMsgs}
-                        authName={authName}
-                        chatReceiver={chatReceiver}
-                        chatReceiverPicURL={chatReceiverPicURL}
-                        authPicURL={authPicURL}
-                        endOfMEssagesRef={endOfMEssagesRef}
-                      />
+                      {isChatMsgTabActive ? (
+                        <ChatCards
+                          chatMsgs={chatMsgs}
+                          authName={authName}
+                          chatReceiver={chatReceiver}
+                          chatReceiverPicURL={chatReceiverPicURL}
+                          authPicURL={authPicURL}
+                          endOfMEssagesRef={endOfMEssagesRef}
+                        />
+                      ) : (
+                        <GroupChatCards
+                          chatMsgs={chatMsgs}
+                          authName={authName}
+                          chatReceiver={chatReceiver}
+                          chatReceiverPicURL={chatReceiverPicURL}
+                          authPicURL={authPicURL}
+                          endOfMEssagesRef={endOfMEssagesRef}
+                        />
+                      )}
+
                       <div ref={endOfMEssagesRef} />
                     </div>
                   </div>

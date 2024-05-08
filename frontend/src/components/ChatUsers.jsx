@@ -18,7 +18,7 @@ const ChatUsers = ({ usersActiveMap }) => {
 
   useEffect(() => {
     if (chatReceiver && isChatMsgTabActive) getMSgs();
-  }, [chatReceiver]);
+  }, [chatReceiver, isChatMsgTabActive]);
 
   useEffect(() => {
     let usersList = users.filter((user) => user.username != authName);

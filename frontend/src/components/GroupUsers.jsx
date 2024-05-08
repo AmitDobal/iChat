@@ -12,16 +12,15 @@ const GroupUsers = () => {
   const [activeGroup, setActiveGroup] = useState(null);
 
   const { users } = useUsersStore();
-  const { groups } = useGroupsStore();
+  const { groups, updateSelectedGroup } = useGroupsStore();
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =
     useChatReceiverStore();
   const { authName } = useAuthStore();
-  const { updateChatMsgs ,isChatMsgTabActive} = useChatMsgsStore();
-  
+  const { updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
 
   useEffect(() => {
     if (chatReceiver && !isChatMsgTabActive) getMSgs();
-  }, [chatReceiver]);
+  }, [chatReceiver, isChatMsgTabActive]);
 
   useEffect(() => {
     let usersList = users.filter((user) => user.username != authName);
@@ -39,13 +38,19 @@ const GroupUsers = () => {
         },
         { withCredentials: true }
       );
-      const groupChatMsgs = res.data?.msgs
-      if (groupChatMsgs?.length !== 0) {
-        updateChatMsgs(groupChatMsgs);
-      } else {
-        updateChatMsgs([]);
+      if (res.data) {
+        const { _id, groupName, users, msgs } = res.data;
+        const groupChatMsgs = msgs;
+        const groupMetaData = { _id, groupName, users };
+
+        if (groupChatMsgs?.length !== 0) {
+          updateChatMsgs(groupChatMsgs);
+        } else {
+          updateChatMsgs([]);
+        }
+        updateSelectedGroup(groupMetaData);
+        console.log("Group msgs:", res.data);
       }
-    console.log("Group msgs:",res.data, groupChatMsgs)
     } catch (error) {
       console.error(
         "Error in geting the chat conversation messages: ",

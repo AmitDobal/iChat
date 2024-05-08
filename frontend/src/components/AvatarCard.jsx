@@ -2,6 +2,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import ProfileAvatar from "./ProfileAvatar";
 import { useAuthStore } from "@/zustand/useAuthStore";
+import axios from "axios";
 
 const AvatarCard = ({ authName }) => {
   const router = useRouter();
@@ -11,6 +12,14 @@ const AvatarCard = ({ authName }) => {
   const handleLogout = () => {
     router.push("/");
     clearAuthData();
+    clearCookie();
+  };
+  const clearCookie = async () => {
+    try {
+      await axios.post("/api/logout");
+    } catch (error) {
+      console.log("Error while clearing cookie: ", error.message);
+    }
   };
   return (
     <div className="flex flex-col items-center bg-gradient-to-b from-indigo-100 to-white border border-white mt-4 w-full py-6 px-4 rounded-lg">

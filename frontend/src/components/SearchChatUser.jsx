@@ -2,11 +2,14 @@ import { AutoComplete } from "antd";
 import axios from "axios";
 import React, { useState } from "react";
 import ChatUser from "./ChatUser";
+import { useAuthStore } from "@/zustand/useAuthStore";
 
 const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {
   const [value, setValue] = useState("");
   const [options, setOptions] = useState([]);
   const [searchedUsers, setSearchedUsers] = useState([]);
+
+  const { authName } = useAuthStore();
 
   const handleSelect = (value) => {
     const selectedUser = searchedUsers?.find((user) => user._id === value);
@@ -19,10 +22,9 @@ const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {
     if (searchText?.length > 0) {
       const resUsers = await getSearchedUser(searchText);
       const addedUsersId = usersAdded?.map((user) => user._id);
-      const users = resUsers.filter(
-        (user) => !addedUsersId?.includes(user._id)
-      );
-
+      let users = resUsers.filter((user) => !addedUsersId?.includes(user._id));
+      users = users?.filter((user) => user?.username !== authName);
+      console.log("Searched USers: " , users)
       setSearchedUsers(users);
       const usernames = users?.map((user) => ({
         value: `${user._id}`,
