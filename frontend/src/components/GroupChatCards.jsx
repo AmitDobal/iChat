@@ -10,7 +10,6 @@ const GroupChatCards = ({
   chatReceiverPicURL,
   authPicURL,
 }) => {
-  const [senderPic, setSenderPic] = useState("");
   const { selectedGroup } = useGroupsStore();
 
   const showSenderCard = (currentMsg) => {
@@ -29,11 +28,19 @@ const GroupChatCards = ({
   };
   return (
     <>
+      {console.log(
+        "chat MSgasdasd:",
+        chatMsgs,
+        authName,
+        chatReceiver,
+        selectedGroup._id
+      )}
       {chatMsgs?.map((currentMsg, i) => (
         <React.Fragment key={i}>
           {currentMsg?.sender !== authName ? (
             <>
               {selectedGroup?._id === chatReceiver &&
+                currentMsg?.groupId === selectedGroup?._id &&
                 showSenderCard(currentMsg, chatReceiverPicURL)}
             </>
           ) : (

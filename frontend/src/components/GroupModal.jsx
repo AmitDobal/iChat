@@ -61,8 +61,20 @@ const GroupModal = () => {
   };
   return (
     <div>
-      <Button size="small" onClick={showModal} type="text">
-        <MdOutlineAddBox />
+      <Button
+        size="small"
+        onClick={showModal}
+        type="primary"
+        style={{
+          backgroundColor: "green",
+          color: "white",
+          width: 80,
+          borderRadius: 5,
+        }}>
+        <div className="flex justify-center items-center gap-2">
+          <MdOutlineAddBox />
+          Create
+        </div>
       </Button>
       <Modal
         title="Create Group"

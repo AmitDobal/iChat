@@ -70,14 +70,17 @@ io.on("connection", (socket) => {
     }
   });
   //GROUP
-  socket.on("group msg", (msg) => {
-    const membersUsername = getMembersUsername(msg.groupId);
+  socket.on("group msg", async (msg) => {
+    const membersUsername = await getMembersUsername(msg);
     addMsgToGroupConversation(msg.groupId, msg);
-    // console.log(membersUsername);
 
-    // menmbersUsername.forEach((member) => {
-    //   console.log(member.username);
-    // });
+    membersUsername.forEach((member) => {
+      const memberSocket = userSocketMap[member];
+      if (memberSocket) {
+        memberSocket.emit("group msg", msg);
+      }
+      //else redis pub sub
+    });
 
     // const receiverSocket = userSocketMap[msg?.receiver];
     // addMsgToConversation([msg.sender, msg.receiver], {
@@ -93,8 +96,12 @@ io.on("connection", (socket) => {
     // }
   });
 
-  const getMembersUsername = async (groupId) => {
-    const membersUsername = await getGroupUsersUsername(groupId);
+  const getMembersUsername = async (msg) => {
+    const groupData = await getGroupUsersUsername(msg.groupId);
+    const members = groupData?.users;
+    const membersUsername = members
+      ?.map((member) => member.username)
+      ?.filter((member) => member !== msg?.sender);
     return membersUsername;
   };
 

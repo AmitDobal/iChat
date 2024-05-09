@@ -59,6 +59,11 @@ const ChatPage = () => {
         console.log("MEssage receved: ", msgRecieve);
         setRecievedMsg(msgRecieve);
       });
+      newSocket.on("group msg", (msgRecieve) => {
+        console.log("Group MEssage receved: ", msgRecieve);
+        console.log("Group chat msgs: ", chatMsgs);
+        setRecievedMsg(msgRecieve);
+      });
       getUsersData();
       getGroupsData();
       return () => newSocket.close();
@@ -134,7 +139,6 @@ const ChatPage = () => {
           withCredentials: true,
         }
       );
-      console.log("Group data: ", res.data);
       updateGroups(res.data);
     } catch (error) {
       console.log(

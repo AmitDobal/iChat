@@ -44,7 +44,11 @@ const GroupUsers = () => {
         const groupMetaData = { _id, groupName, users };
 
         if (groupChatMsgs?.length !== 0) {
-          updateChatMsgs(groupChatMsgs);
+          const grpMsgs = groupChatMsgs.map((msg) => ({
+            ...msg,
+            groupId: _id,
+          }));
+          updateChatMsgs(grpMsgs);
         } else {
           updateChatMsgs([]);
         }
@@ -67,7 +71,6 @@ const GroupUsers = () => {
 
   return (
     <>
-      {/* {console.log("GROUPS DATA: ", groups)} */}
       {groups?.map((group) => (
         <button
           key={group._id}
