@@ -6,9 +6,8 @@ import { useUsersStore } from "@/zustand/useUsersStore";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const ChatUsers = ({ usersActiveMap }) => {
+const ChatUsers = ({ usersActiveMap, activeUser, setActiveUser }) => {
   const [displayUsers, setDisplayUsers] = useState([]);
-  const [activeUser, setActiveUser] = useState(null);
 
   const { users } = useUsersStore();
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =

@@ -7,9 +7,8 @@ import { useUsersStore } from "@/zustand/useUsersStore";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const GroupUsers = () => {
+const GroupUsers = ({ activeGroup, setActiveGroup }) => {
   const [displayUsers, setDisplayUsers] = useState([]);
-  const [activeGroup, setActiveGroup] = useState(null);
 
   const { users } = useUsersStore();
   const { groups, updateSelectedGroup } = useGroupsStore();

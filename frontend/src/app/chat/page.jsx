@@ -38,7 +38,7 @@ const ChatPage = () => {
     (state) => state.chatReceiverPicURL
   );
   const { chatMsgs, updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
-  const { updateGroups } = useGroupsStore();
+  const { updateGroups, selectedGroup } = useGroupsStore();
 
   const router = useRouter();
   const endOfMEssagesRef = useRef(null);
@@ -149,29 +149,31 @@ const ChatPage = () => {
   };
 
   const sendMsg = () => {
-    // const msgToBeSent = {
-    //   text: msg,
-    //   sender: authName,
-    //   receiver: chatReceiver,
-    // };
-    // if (socket) {
-    //   socket.emit("chat msg", msgToBeSent);
-    //   updateChatMsgs([...chatMsgs, msgToBeSent]);
-    //   setMsg("");
-    //   closeEmojis();
-    // }
-
-    const msgToBeSent = {
-      groupId: chatReceiver,
-      text: msg,
-      sender: authName,
-    };
-    if (socket) {
-      socket.emit("group msg", msgToBeSent);
+    //send msg to one to one Chat
+    if (isChatMsgTabActive) {
+      const msgToBeSent = {
+        text: msg,
+        sender: authName,
+        receiver: chatReceiver,
+      };
+      if (socket) {
+        socket.emit("chat msg", msgToBeSent);
+      }
       updateChatMsgs([...chatMsgs, msgToBeSent]);
-      setMsg("");
-      closeEmojis();
+    } else {
+      //Send msg to Group chat
+      const msgToBeSent = {
+        groupId: chatReceiver,
+        text: msg,
+        sender: authName,
+      };
+      if (socket) {
+        socket.emit("group msg", msgToBeSent);
+      }
+      updateChatMsgs([...chatMsgs, msgToBeSent]);
     }
+    setMsg("");
+    closeEmojis();
   };
 
   const handleInputKeyDown = (e) => {
@@ -237,7 +239,11 @@ const ChatPage = () => {
                       />
                     </div>
                   )}
-                  <span className="text-gray-700 mr-3">{chatReceiver}</span>
+                  <span className="text-gray-700 mr-3">
+                    {isChatMsgTabActive
+                      ? chatReceiver
+                      : selectedGroup?.groupName}
+                  </span>
                 </div>
               </div>
               {/* Chat section */}
