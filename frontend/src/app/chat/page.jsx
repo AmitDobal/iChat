@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import ConversationTabs from "@/components/ConversationTabs";
 import { useGroupsStore } from "@/zustand/useGroupsStore";
 import GroupChatCards from "@/components/GroupChatCards";
+import { useNotificationsStore } from "@/zustand/useNotificationStore";
 
 const ChatPage = () => {
   const [socket, setSocket] = useState(null);
@@ -39,6 +40,7 @@ const ChatPage = () => {
   );
   const { chatMsgs, updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
   const { updateGroups, selectedGroup } = useGroupsStore();
+  const { unreadMsgs, updateUnreadMsgs } = useNotificationsStore();
 
   const router = useRouter();
   const endOfMEssagesRef = useRef(null);
@@ -52,7 +54,6 @@ const ChatPage = () => {
       });
       setSocket(newSocket);
       newSocket.on("active", (actUser) => {
-        console.log("Active: ", actUser);
         setUsersActive(actUser);
       });
       newSocket.on("chat msg", (msgRecieve) => {
@@ -60,8 +61,6 @@ const ChatPage = () => {
         setRecievedMsg(msgRecieve);
       });
       newSocket.on("group msg", (msgRecieve) => {
-        console.log("Group MEssage receved: ", msgRecieve);
-        console.log("Group chat msgs: ", chatMsgs);
         setRecievedMsg(msgRecieve);
       });
       getUsersData();
@@ -72,6 +71,16 @@ const ChatPage = () => {
 
   useEffect(() => {
     updateChatMsgs([...chatMsgs, recievedMsg]);
+    const sender = recievedMsg.sender;
+    let senderMsgCount = unreadMsgs[sender];
+    if (sender && sender !== chatReceiver) {
+      if (senderMsgCount) {
+        senderMsgCount++;
+        updateUnreadMsgs({ ...unreadMsgs, [sender]: senderMsgCount });
+      } else {
+        updateUnreadMsgs({ ...unreadMsgs, [sender]: 1 });
+      }
+    }
   }, [recievedMsg]);
 
   useEffect(() => {

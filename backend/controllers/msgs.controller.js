@@ -1,6 +1,6 @@
 import Conversation from "../models/chat.model.js";
 import GroupConversation from "../models/groupChat.model.js";
-import User from "../models/user.model.js";
+import { getUserByUsername } from "./users.controller.js";
 
 export const addMsgToConversation = async (participants, msg) => {
   try {
@@ -51,6 +51,7 @@ export const createGroupConversation = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 export const addMsgToGroupConversation = async (groupID, msg) => {
   try {
     let conversation = await GroupConversation.findOne({ _id: groupID });
@@ -64,6 +65,7 @@ export const addMsgToGroupConversation = async (groupID, msg) => {
     console.log("Error addMsgToConversation:", error.message);
   }
 };
+
 export const getGroupMsgsForConversation = async (req, res) => {
   try {
     const { groupId } = req.query;
@@ -93,7 +95,9 @@ export const getGroupUsersUsername = async (groupId) => {
 export const getGroups = async (req, res) => {
   try {
     const { username } = req.query;
-    const user = await User.findOne({ username });
+    // const user = await User.findOne({ username });
+    const user = await getUserByUsername(username);
+
     if (!user) return res.status(200).json([]);
 
     const groups = await GroupConversation.find({

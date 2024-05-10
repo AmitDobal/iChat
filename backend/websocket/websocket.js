@@ -60,3 +60,10 @@ const getMembersUsername = async (msg) => {
     ?.filter((member) => member !== msg?.sender);
   return membersUsername;
 };
+
+//Notification Event
+export const notificationEvent = (userSocketMap) => {
+    return (msg) => {
+        
+    }
+}

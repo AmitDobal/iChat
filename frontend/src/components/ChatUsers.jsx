@@ -2,6 +2,7 @@
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
+import { useNotificationsStore } from "@/zustand/useNotificationStore";
 import { useUsersStore } from "@/zustand/useUsersStore";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -14,15 +15,16 @@ const ChatUsers = ({ usersActiveMap, activeUser, setActiveUser }) => {
     useChatReceiverStore();
   const { authName } = useAuthStore();
   const { updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
+  const { unreadMsgs, updateUnreadMsgs } = useNotificationsStore();
 
   useEffect(() => {
     if (chatReceiver && isChatMsgTabActive) getMSgs();
   }, [chatReceiver, isChatMsgTabActive]);
 
   useEffect(() => {
-    let usersList = users.filter((user) => user.username != authName);
+    let usersList = users.filter((user) => user.username !== authName);
     setDisplayUsers(usersList);
-  }, [users, usersActiveMap]);
+  }, [users, usersActiveMap, unreadMsgs]);
 
   const getMSgs = async () => {
     try {
@@ -54,38 +56,42 @@ const ChatUsers = ({ usersActiveMap, activeUser, setActiveUser }) => {
     updateChatReceiver(user.username);
     setActiveUser(user.username);
     updateChatReceiverPicURL(user.profilePic);
+    updateUnreadMsgs({...unreadMsgs, [user.username] : null})
   };
 
   return (
     <>
       {displayUsers?.map((user) => (
-          <button
-            key={user._id}
-            onClick={() => handleClick(user)}
-            className={`flex flex-row items-center hover:bg-gray-100  rounded-xl p-2 ${
-              activeUser === user?.username && "bg-gray-100"
-            } `}>
-            <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
-              <img
-                src={user.profilePic}
-                alt="Avatar"
-                className="rounded-full w-8 h-8 object-cover"
-              />
-            </div>
-            <div className="ml-2 text-sm font-semibold">{user.username}</div>
-            <span
-              className={`${
-                user?.activeStatus === 1 ||
-                usersActiveMap[user.username] === true
-                  ? " bg-green-500 "
-                  : " bg-slate-400 "
-              } h-3 w-3 rounded-full ml-2 `}
+        <button
+          key={user._id}
+          onClick={() => handleClick(user)}
+          className={`flex flex-row items-center hover:bg-gray-100  rounded-xl p-2 ${
+            activeUser === user?.username && "bg-gray-100"
+          } `}>
+          <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
+            <img
+              src={user.profilePic}
+              alt="Avatar"
+              className="rounded-full w-8 h-8 object-cover"
             />
-            <span
-              className={`bg-red-500 h-4 w-4 rounded-full ml-2 text-white items-center text-xs font-bold flex justify-center `}>
-              2
-            </span>
-          </button>
+          </div>
+          <div className="ml-2 text-sm font-semibold">{user.username}</div>
+          <span
+            className={`${
+              user?.activeStatus === 1 || usersActiveMap[user.username] === true
+                ? " bg-green-500 "
+                : " bg-slate-400 "
+            } h-3 w-3 rounded-full ml-2 `}
+          />
+          {unreadMsgs &&
+            unreadMsgs[user?.username] &&
+            unreadMsgs[user?.username] > 0 && (
+              <span
+                className={`bg-red-500 h-4 w-4 rounded-full ml-2 text-white items-center text-xs font-bold flex justify-center `}>
+                {unreadMsgs[user?.username]}
+              </span>
+            )}
+        </button>
       ))}
     </>
   );

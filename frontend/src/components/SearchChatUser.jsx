@@ -24,7 +24,7 @@ const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {
       const addedUsersId = usersAdded?.map((user) => user._id);
       let users = resUsers.filter((user) => !addedUsersId?.includes(user._id));
       users = users?.filter((user) => user?.username !== authName);
-      console.log("Searched USers: " , users)
+      console.log("Searched USers: ", users);
       setSearchedUsers(users);
       const usernames = users?.map((user) => ({
         value: `${user._id}`,
@@ -46,7 +46,8 @@ const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {
   const getSearchedUser = async (searchText) => {
     try {
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_GET_USERS_URL}/search?name=${searchText}`
+        `${process.env.NEXT_PUBLIC_GET_USERS_URL}/search?name=${searchText}`,
+        { withCredentials: true }
       );
       return res.data;
     } catch (error) {

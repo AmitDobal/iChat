@@ -9,6 +9,7 @@ import { updateUserActiveStatus } from "./controllers/users.controller.js";
 import {
   chatMsgEvent,
   groupMsgEvent,
+  notificationEvent,
   subscribedToUsername,
 } from "./websocket/websocket.js";
 
@@ -49,6 +50,9 @@ io.on("connection", (socket) => {
 
   //GROUP Event
   socket.on("group msg", groupMsgEvent(userSocketMap));
+
+  //Notification Event
+  socket.on("notification", notificationEvent(userSocketMap));
 
   //DISCONNECT
   socket.on("disconnect", () => {
