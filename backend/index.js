@@ -4,14 +4,13 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { Server } from "socket.io";
 import mongoDBConnection from "./db/mongoDBConnection.js";
-import {
-  addMsgToConversation,
-  addMsgToGroupConversation,
-  getGroupUsersUsername,
-} from "./controllers/msgs.controller.js";
 import msgsRouter from "./routes/msgs.route.js";
-import { publish, subscribe } from "./redis/msgsPubSub.js";
 import { updateUserActiveStatus } from "./controllers/users.controller.js";
+import {
+  chatMsgEvent,
+  groupMsgEvent,
+  subscribedToUsername,
+} from "./websocket/websocket.js";
 
 dotenv.config();
 
@@ -36,74 +35,20 @@ const io = new Server(server, {
 const userSocketMap = {};
 io.on("connection", (socket) => {
   const username = socket.handshake.query.username;
-  console.log("Client Connected: " + socket.id, username);
-  io.emit("active", { username, activeStatus: true });
-  updateUserActiveStatus(username, "ONLINE");
-  //Subscribed
-  const channelName = `chat_${username}`;
-  subscribe(channelName, (msg) => {
-    try {
-      socket.emit("chat msg", JSON.parse(msg));
-    } catch (error) {
-      console.log(
-        "Error during subscribe callback: " + channelName,
-        error.message
-      );
-    }
-  });
-
   userSocketMap[username] = socket;
 
-  //CHAT
-  socket.on("chat msg", (msg) => {
-    const receiverSocket = userSocketMap[msg?.receiver];
-    addMsgToConversation([msg.sender, msg.receiver], {
-      text: msg.text,
-      sender: msg.sender,
-      receiver: msg.receiver,
-    });
-    if (receiverSocket) {
-      receiverSocket.emit("chat msg", msg);
-    } else {
-      const channelName = `chat_${msg.receiver}`;
-      publish(channelName, JSON.stringify(msg));
-    }
-  });
-  //GROUP
-  socket.on("group msg", async (msg) => {
-    const membersUsername = await getMembersUsername(msg);
-    addMsgToGroupConversation(msg.groupId, msg);
+  //Active status to all connected users
+  io.emit("active", { username, activeStatus: true });
+  updateUserActiveStatus(username, "ONLINE");
 
-    membersUsername.forEach((member) => {
-      const memberSocket = userSocketMap[member];
-      if (memberSocket) {
-        memberSocket.emit("group msg", msg);
-      }
-      //else redis pub sub
-    });
+  //Subscribed
+  subscribedToUsername(username, socket);
 
-    // const receiverSocket = userSocketMap[msg?.receiver];
-    // addMsgToConversation([msg.sender, msg.receiver], {
-    //   text: msg.text,
-    //   sender: msg.sender,
-    //   receiver: msg.receiver,
-    // });
-    // if (receiverSocket) {
-    //   receiverSocket.emit("chat msg", msg);
-    // } else {
-    //   const channelName = `chat_${msg.receiver}`;
-    //   publish(channelName, JSON.stringify(msg));
-    // }
-  });
+  //CHAT Event
+  socket.on("chat msg", chatMsgEvent(userSocketMap));
 
-  const getMembersUsername = async (msg) => {
-    const groupData = await getGroupUsersUsername(msg.groupId);
-    const members = groupData?.users;
-    const membersUsername = members
-      ?.map((member) => member.username)
-      ?.filter((member) => member !== msg?.sender);
-    return membersUsername;
-  };
+  //GROUP Event
+  socket.on("group msg", groupMsgEvent(userSocketMap));
 
   //DISCONNECT
   socket.on("disconnect", () => {
@@ -112,6 +57,7 @@ io.on("connection", (socket) => {
     console.log("Client disconnected: " + socket.id);
   });
 });
+
 app.use("/msgs", msgsRouter);
 
 app.get("/", (req, res) => {

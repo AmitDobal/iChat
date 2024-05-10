@@ -31,7 +31,7 @@ const ConversationTabs = ({ usersActiveMap }) => {
       key: "chats",
       label: "Chats",
       children: (
-        <div className="flex flex-col space-y-1  -mx-2 h-52 overflow-y-auto">
+        <div className="flex flex-col space-y-1 -mx-2 h-52 overflow-y-auto ">
           <ChatUsers
             usersActiveMap={usersActiveMap}
             activeUser={activeUser}

@@ -85,6 +85,23 @@ const GroupModal = () => {
         onCancel={handleCancel}>
         <div>
           <form className="max-w-md mx-auto" onSubmit={handleSubmit}>
+            {/* <div class="mb-6">
+              <label
+                htmlFor="groupName"
+                class="block mb-2 text-sm font-medium text-white dark:text-white">
+                Group Name
+              </label>
+              <input
+                onChange={handleInput}
+                value={input?.groupName}
+                type="text"
+                name="groupName"
+                id="groupName"
+                className=" border border-gray-300 text-gray-900 text-md rounded-lg focus:ring-blue-500 block w-full p-2.5 dark:focus:border-blue-500  focus:outline-none  focus:border-blue-600"
+                placeholder="Group Name"
+                required
+              />
+            </div> */}
             <div className="relative z-0 w-full mb-5 group">
               <input
                 onChange={handleInput}

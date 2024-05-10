@@ -59,28 +59,33 @@ const ChatUsers = ({ usersActiveMap, activeUser, setActiveUser }) => {
   return (
     <>
       {displayUsers?.map((user) => (
-        <button
-          key={user._id}
-          onClick={() => handleClick(user)}
-          className={`flex flex-row items-center hover:bg-gray-100  rounded-xl p-2 ${
-            activeUser === user?.username && "bg-gray-100"
-          } `}>
-          <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
-            <img
-              src={user.profilePic}
-              alt="Avatar"
-              className="rounded-full w-8 h-8 object-cover"
+          <button
+            key={user._id}
+            onClick={() => handleClick(user)}
+            className={`flex flex-row items-center hover:bg-gray-100  rounded-xl p-2 ${
+              activeUser === user?.username && "bg-gray-100"
+            } `}>
+            <div className="flex items-center justify-center h-8 w-8 bg-gray-200 rounded-full">
+              <img
+                src={user.profilePic}
+                alt="Avatar"
+                className="rounded-full w-8 h-8 object-cover"
+              />
+            </div>
+            <div className="ml-2 text-sm font-semibold">{user.username}</div>
+            <span
+              className={`${
+                user?.activeStatus === 1 ||
+                usersActiveMap[user.username] === true
+                  ? " bg-green-500 "
+                  : " bg-slate-400 "
+              } h-3 w-3 rounded-full ml-2 `}
             />
-          </div>
-          <div className="ml-2 text-sm font-semibold">{user.username}</div>
-          <span
-            className={`${
-              user?.activeStatus === 1 || usersActiveMap[user.username] === true
-                ? " bg-green-500 "
-                : " bg-slate-400 "
-            } h-3 w-3 rounded-full ml-2 `}
-          />
-        </button>
+            <span
+              className={`bg-red-500 h-4 w-4 rounded-full ml-2 text-white items-center text-xs font-bold flex justify-center `}>
+              2
+            </span>
+          </button>
       ))}
     </>
   );

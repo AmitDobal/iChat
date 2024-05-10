@@ -8,7 +8,7 @@ const GroupTabContainer = ({ activeGroup, setActiveGroup }) => {
       <div className="absolute flex ml-32 ">
         <GroupModal />
       </div>
-      <div className="flex flex-col space-y-1  -mx-2 h-44 overflow-y-auto ">
+      <div className="flex flex-col space-y-1 -mx-2 h-52 overflow-y-auto ">
         <GroupUsers activeGroup={activeGroup} setActiveGroup={setActiveGroup} />
       </div>
     </div>
