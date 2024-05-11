@@ -296,7 +296,7 @@ const ChatPage = () => {
                         onClick={closeEmojis}
                         type="text"
                         disabled={!chatReceiver}
-                        className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
+                        className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10 pr-10"
                       />
                       <button
                         onClick={() => setShowEmojis((prev) => !prev)}
