@@ -57,10 +57,10 @@ const ChatPage = () => {
         setUsersActive(actUser);
       });
       newSocket.on("chat msg", (msgRecieve) => {
-        console.log("MEssage receved: ", msgRecieve);
         setRecievedMsg(msgRecieve);
       });
       newSocket.on("group msg", (msgRecieve) => {
+        console.log("Group msg received: ", msgRecieve);
         setRecievedMsg(msgRecieve);
       });
       getUsersData();
@@ -71,16 +71,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     updateChatMsgs([...chatMsgs, recievedMsg]);
-    const sender = recievedMsg.sender;
-    let senderMsgCount = unreadMsgs[sender];
-    if (sender && sender !== chatReceiver) {
-      if (senderMsgCount) {
-        senderMsgCount++;
-        updateUnreadMsgs({ ...unreadMsgs, [sender]: senderMsgCount });
-      } else {
-        updateUnreadMsgs({ ...unreadMsgs, [sender]: 1 });
-      }
-    }
+    handleUnreadMsgs();
   }, [recievedMsg]);
 
   useEffect(() => {
@@ -204,6 +195,23 @@ const ChatPage = () => {
 
   const closeEmojis = () => {
     setShowEmojis(false);
+  };
+
+  const handleUnreadMsgs = () => {
+    let sender = recievedMsg.sender;
+    //If It is a group msg
+    if (recievedMsg.groupId) {
+      sender = recievedMsg.groupId;
+    }
+    let senderMsgCount = unreadMsgs[sender];
+    if (sender && sender !== chatReceiver) {
+      if (senderMsgCount) {
+        senderMsgCount++;
+        updateUnreadMsgs({ ...unreadMsgs, [sender]: senderMsgCount });
+      } else {
+        updateUnreadMsgs({ ...unreadMsgs, [sender]: 1 });
+      }
+    }
   };
   return (
     <>

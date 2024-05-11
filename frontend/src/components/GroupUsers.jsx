@@ -1,30 +1,21 @@
 "use client";
-import { useAuthStore } from "@/zustand/useAuthStore";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
 import { useGroupsStore } from "@/zustand/useGroupsStore";
-import { useUsersStore } from "@/zustand/useUsersStore";
+import { useNotificationsStore } from "@/zustand/useNotificationStore";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 const GroupUsers = ({ activeGroup, setActiveGroup }) => {
-  const [displayUsers, setDisplayUsers] = useState([]);
-
-  const { users } = useUsersStore();
   const { groups, updateSelectedGroup } = useGroupsStore();
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =
     useChatReceiverStore();
-  const { authName } = useAuthStore();
   const { updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
+  const { unreadMsgs, updateUnreadMsgs } = useNotificationsStore();
 
   useEffect(() => {
     if (chatReceiver && !isChatMsgTabActive) getMSgs();
   }, [chatReceiver, isChatMsgTabActive]);
-
-  useEffect(() => {
-    let usersList = users.filter((user) => user.username != authName);
-    setDisplayUsers(usersList);
-  }, [users]);
 
   const getMSgs = async () => {
     try {
@@ -52,7 +43,6 @@ const GroupUsers = ({ activeGroup, setActiveGroup }) => {
           updateChatMsgs([]);
         }
         updateSelectedGroup(groupMetaData);
-        console.log("Group msgs:", res.data);
       }
     } catch (error) {
       console.error(
@@ -66,6 +56,7 @@ const GroupUsers = ({ activeGroup, setActiveGroup }) => {
     updateChatReceiver(group._id);
     setActiveGroup(group._id);
     updateChatReceiverPicURL(group.groupPic);
+    updateUnreadMsgs({ ...unreadMsgs, [group._id]: null });
   };
 
   return (
@@ -85,6 +76,14 @@ const GroupUsers = ({ activeGroup, setActiveGroup }) => {
             />
           </div>
           <div className="ml-2 text-sm font-semibold">{group.groupName}</div>
+          {unreadMsgs &&
+            unreadMsgs[group?._id] &&
+            unreadMsgs[group?._id] > 0 && (
+              <span
+                className={`bg-red-500 h-4 w-4 rounded-full ml-2 text-white items-center text-xs font-bold flex justify-center `}>
+                {unreadMsgs[group?._id]}
+              </span>
+            )}
         </button>
       ))}
     </>

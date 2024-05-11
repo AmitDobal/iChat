@@ -29,13 +29,6 @@ const GroupChatCards = ({
   };
   return (
     <>
-      {console.log(
-        "chat MSgasdasd:",
-        chatMsgs,
-        authName,
-        chatReceiver,
-        selectedGroup._id
-      )}
       {chatMsgs?.map((currentMsg, i) => (
         <React.Fragment key={i}>
           {currentMsg?.sender !== authName ? (
