@@ -23,6 +23,7 @@ const GroupChatCards = ({
         createdAt={currentMsg?.createdAt}
         isLeft={true}
         bgColor="bg-white"
+        username={sender.username}
       />
     );
   };
@@ -50,6 +51,7 @@ const GroupChatCards = ({
               createdAt={currentMsg?.createdAt}
               isLeft={false}
               bgColor="bg-indigo-100"
+              username={"You"}
             />
           )}
         </React.Fragment>

@@ -1,7 +1,7 @@
 import React from "react";
 import moment from "moment";
 
-const ChatCard = ({ text, picSrc, createdAt, isLeft, bgColor }) => {
+const ChatCard = ({ text, picSrc, createdAt, isLeft, bgColor, username }) => {
   return (
     <div
       className={`${
@@ -12,26 +12,30 @@ const ChatCard = ({ text, picSrc, createdAt, isLeft, bgColor }) => {
           isLeft ? "flex-row " : "flex-row-reverse"
         }`}>
         <div
-          className={`flex items-center justify-center h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0 `}>
+          className={`flex items-center rounded-full flex-shrink-0 flex-col`}>
           <img
             src={picSrc}
             alt="Avatar"
             className="rounded-full w-10 h-10 object-cover"
           />
+          <div className="text-xs">{username}</div>
         </div>
-        <div
-          className={`relative ${
-            isLeft ? "ml-3 " : "mr-3 "
-          } text-sm py-2 px-4 shadow rounded-xl ${bgColor}`}>
-          <div>{text}</div>
+
+        <div className="flex flex-col">
+          <div
+            className={`relative ${
+              isLeft ? "ml-3 " : "mr-3 "
+            } text-sm py-2 px-4 shadow rounded-xl ${bgColor}`}>
+            <div>{text}</div>
+          </div>
+          <span
+            className={`text-xs text-gray-400 ${
+              isLeft ? "ml-6  mt-1  " : "mr-6 flex flex-row-reverse mt-1"
+            }`}>
+            {moment(createdAt)?.format("hh:mm A")}
+          </span>
         </div>
       </div>
-      <span
-        className={`text-xs text-gray-400  ${
-          isLeft ? "ml-14 " : "mr-14 flex flex-row-reverse "
-        }`}>
-        {moment(createdAt)?.format("hh:mm A")}
-      </span>
     </div>
   );
 };
