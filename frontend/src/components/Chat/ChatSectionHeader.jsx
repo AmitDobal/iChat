@@ -16,7 +16,7 @@ const ChatSectionHeader = ({
       isChatMsgTabActive,
       selectedGroup
     );
-    if(!isChatMsgTabActive) setOpenGroupDetailsModal(true);
+    if (!isChatMsgTabActive) setOpenGroupDetailsModal(true);
   };
   return (
     <>
@@ -36,6 +36,8 @@ const ChatSectionHeader = ({
       <GroupDetailsModal
         open={openGroupDetailsModal}
         setOpen={setOpenGroupDetailsModal}
+        groupPic={chatReceiverPicURL}
+        groupData={selectedGroup}
       />
     </>
   );
