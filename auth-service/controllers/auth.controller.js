@@ -15,7 +15,13 @@ export const signup = async (req, res) => {
     generateJWTTokenAndSetCookie(user._id, username, res);
 
     await user.save();
-    res.status(201).json({ message: "User signup successfully" });
+    res
+      .status(201)
+      .json({
+        _id: user._id,
+        username: user.username,
+        profilePic: user.profilePic,
+      });
   } catch (error) {
     console.log("Signup error:", error.message);
     res.status(500).json({ error: error.message });

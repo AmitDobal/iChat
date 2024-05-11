@@ -10,7 +10,7 @@ const Auth = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { authName, updateAuthName, updatePicURL } = useAuthStore();
+  const { updateAuthId, updateAuthName, updatePicURL } = useAuthStore();
 
   const router = useRouter();
   useEffect(() => {
@@ -57,6 +57,8 @@ const Auth = () => {
       );
       if (res.status === 201) {
         updateAuthName(username);
+        updatePicURL(res.data?.profilePic);
+        updateAuthId(res.data?._id);
         message.success("Signup successfull!");
         router.replace("/chat");
       }
@@ -82,6 +84,7 @@ const Auth = () => {
       if (res.status === 200) {
         updateAuthName(username);
         updatePicURL(res.data.profilePic);
+        updateAuthId(res.data?._id);
         message.success("Login successfull!");
         router.replace("/chat");
       }

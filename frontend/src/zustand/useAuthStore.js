@@ -13,9 +13,11 @@ export const useAuthStore = create(
     (set) => ({
       authName: "",
       authPicURL: "",
+      authId: "",
       updateAuthName: (name) => set({ authName: name }),
       updatePicURL: (url) => set({ authPicURL: url }),
-      clearAuthData: () => set({ authName: "", authPicURL: "" }),
+      updateAuthId: (id) => set({ authId: id }),
+      clearAuthData: () => set({ authName: "", authPicURL: "", authId: "" }),
     }),
     {
       name: "auth-storage", // name of the item in the storage (must be unique)

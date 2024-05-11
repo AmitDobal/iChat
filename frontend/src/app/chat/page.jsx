@@ -1,5 +1,4 @@
 "use client";
-import ChatUsers from "@/components/ChatUsers";
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
@@ -8,15 +7,21 @@ import { Spin, message } from "antd";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
-import AvatarCard from "@/components/AvatarCard";
+import AvatarCard from "@/components/Avatar/AvatarCard";
 import Picker from "@emoji-mart/react";
-import ChatCards from "@/components/ChatCards";
+import ChatCards from "@/components/Chat/ChatCards";
 import { IoChatbubblesSharp } from "react-icons/io5";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { LuSend } from "react-icons/lu";
 import { ImAttachment } from "react-icons/im";
 import Upload from "antd/es/upload/Upload";
 import { useRouter } from "next/navigation";
+
+import ConversationTabs from "@/components/ConversationTabs";
+import { useGroupsStore } from "@/zustand/useGroupsStore";
+import GroupChatCards from "@/components/Group/GroupChatCards";
+import { useNotificationsStore } from "@/zustand/useNotificationStore";
+import ChatSectionHeader from "@/components/Chat/ChatSectionHeader";
 
 const ChatPage = () => {
   const [socket, setSocket] = useState(null);
@@ -29,13 +34,15 @@ const ChatPage = () => {
   const [showEmojis, setShowEmojis] = useState(false);
 
   const { authName, authPicURL } = useAuthStore();
-  const { users, updateUsers } =
-    useUsersStore();
+  const { updateUsers } = useUsersStore();
   const chatReceiver = useChatReceiverStore((state) => state.chatReceiver);
   const chatReceiverPicURL = useChatReceiverStore(
     (state) => state.chatReceiverPicURL
   );
-  const { chatMsgs, updateChatMsgs } = useChatMsgsStore();
+  const { chatMsgs, updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
+  const { updateGroups, selectedGroup } = useGroupsStore();
+  const { unreadMsgs, updateUnreadMsgs } = useNotificationsStore();
+
   const router = useRouter();
   const endOfMEssagesRef = useRef(null);
   useEffect(() => {
@@ -48,19 +55,23 @@ const ChatPage = () => {
       });
       setSocket(newSocket);
       newSocket.on("active", (actUser) => {
-        console.log("Active: ", actUser);
         setUsersActive(actUser);
       });
       newSocket.on("chat msg", (msgRecieve) => {
         setRecievedMsg(msgRecieve);
       });
-      getUerData();
+      newSocket.on("group msg", (msgRecieve) => {
+        setRecievedMsg(msgRecieve);
+      });
+      getUsersData();
+      getGroupsData();
       return () => newSocket.close();
     }
   }, [authName]);
 
   useEffect(() => {
     updateChatMsgs([...chatMsgs, recievedMsg]);
+    handleUnreadMsgs();
   }, [recievedMsg]);
 
   useEffect(() => {
@@ -68,11 +79,6 @@ const ChatPage = () => {
   }, [chatMsgs]);
 
   useEffect(() => {
-    const data = {
-      ...usersActiveMap,
-      [usersActive.username]: usersActive.activeStatus,
-    };
-    console.log("Use effect data: ", data);
     setUsersActiveMap((prev) => ({
       ...prev,
       [usersActive.username]: usersActive.activeStatus,
@@ -99,11 +105,12 @@ const ChatPage = () => {
       console.error("ERROR while verifying token:", error.message);
       isAuthPassed = false;
     }
+    if (!isAuthPassed) router.replace("/");
     if (isAuthPassed) setIsLoading(false);
     return isAuthPassed;
   };
 
-  const getUerData = async () => {
+  const getUsersData = async () => {
     try {
       const res = await axios.get(process.env.NEXT_PUBLIC_USERS_API, {
         withCredentials: true,
@@ -119,18 +126,56 @@ const ChatPage = () => {
     }
   };
 
-  const sendMsg = () => {
-    const msgToBeSent = {
-      text: msg,
-      sender: authName,
-      receiver: chatReceiver,
-    };
-    if (socket) {
-      socket.emit("chat msg", msgToBeSent);
-      updateChatMsgs([...chatMsgs, msgToBeSent]);
-      setMsg("");
-      closeEmojis();
+  const getGroupsData = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_CHAT_SERVER_URL}/msgs/groups`,
+        {
+          params: {
+            username: authName,
+          },
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      updateGroups(res.data);
+    } catch (error) {
+      console.log(
+        "Error while fetching Grups data from backend:",
+        error.message
+      );
     }
+  };
+
+  const sendMsg = () => {
+    if (msg) {
+      //send msg to one to one Chat
+      if (isChatMsgTabActive) {
+        const msgToBeSent = {
+          text: msg,
+          sender: authName,
+          receiver: chatReceiver,
+        };
+        if (socket) {
+          socket.emit("chat msg", msgToBeSent);
+        }
+        updateChatMsgs([...chatMsgs, msgToBeSent]);
+      } else {
+        //Send msg to Group chat
+        const msgToBeSent = {
+          groupId: chatReceiver,
+          text: msg,
+          sender: authName,
+        };
+        if (socket) {
+          socket.emit("group msg", msgToBeSent);
+        }
+        updateChatMsgs([...chatMsgs, msgToBeSent]);
+      }
+    }
+    setMsg("");
+    closeEmojis();
   };
 
   const handleInputKeyDown = (e) => {
@@ -151,6 +196,23 @@ const ChatPage = () => {
   const closeEmojis = () => {
     setShowEmojis(false);
   };
+
+  const handleUnreadMsgs = () => {
+    let sender = recievedMsg.sender;
+    //If It is a group msg
+    if (recievedMsg.groupId) {
+      sender = recievedMsg.groupId;
+    }
+    let senderMsgCount = unreadMsgs[sender];
+    if (sender && sender !== chatReceiver) {
+      if (senderMsgCount) {
+        senderMsgCount++;
+        updateUnreadMsgs({ ...unreadMsgs, [sender]: senderMsgCount });
+      } else {
+        updateUnreadMsgs({ ...unreadMsgs, [sender]: 1 });
+      }
+    }
+  };
   return (
     <>
       {isLoading ? (
@@ -160,42 +222,26 @@ const ChatPage = () => {
       ) : (
         <div className="flex h-screen antialiased text-gray-800">
           <div className="flex flex-row h-full w-full overflow-x-auto">
-            <div className="flex flex-col py-8 pl-6 pr-2 w-64 bg-white flex-shrink-0">
-              <div className="flex flex-row items-center justify-center h-12 w-full">
+            <div className="flex flex-col pt-2 pb-10 pl-6 pr-2 w-64 bg-white flex-shrink-0">
+              <div className="flex flex-row items-center justify- h-12 w-full">
                 <div className="flex items-center justify-center rounded-2xl text-indigo-700 bg-indigo-100 h-10 w-10">
                   <IoChatbubblesSharp className="w-10 h-6" />
                 </div>
                 <div className="ml-2 font-bold text-2xl">iChat</div>
               </div>
               <AvatarCard authName={authName} />
-              <div className="flex flex-col mt-8">
-                <div className="flex flex-row items-center justify-between text-xs">
-                  <span className="font-bold">Active Conversations</span>
-                  <span className="flex items-center justify-center bg-gray-300 h-4 w-4 rounded-full">
-                    {users?.length ? users?.length - 1 : 0}
-                  </span>
-                </div>
-                <Spin spinning={isLoading}>
-                  <div className="flex flex-col space-y-1 mt-4 -mx-2 h-52 overflow-y-auto">
-                    <ChatUsers usersActiveMap={usersActiveMap} />
-                  </div>
-                </Spin>
-              </div>
+              <ConversationTabs usersActiveMap={usersActiveMap} />
             </div>
 
             <div className="flex flex-col flex-auto h-full p-6 top-2 ">
               <div className="flex flex-col leading-tight mb-2">
                 <div className="text-xl mt-1 flex items-center gap-2">
-                  {chatReceiver && (
-                    <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
-                      <img
-                        src={chatReceiverPicURL}
-                        alt="Avatar"
-                        className="rounded-full w-8 h-8 object-cover "
-                      />
-                    </div>
-                  )}
-                  <span className="text-gray-700 mr-3">{chatReceiver}</span>
+                  <ChatSectionHeader
+                    chatReceiver={chatReceiver}
+                    chatReceiverPicURL={chatReceiverPicURL}
+                    isChatMsgTabActive={isChatMsgTabActive}
+                    selectedGroup={selectedGroup}
+                  />
                 </div>
               </div>
               {/* Chat section */}
@@ -208,14 +254,26 @@ const ChatPage = () => {
                   className="flex flex-col h-full overflow-x-auto mb-4">
                   <div className="flex flex-col h-full">
                     <div className="grid grid-cols-12 gap-y-2 ">
-                      <ChatCards
-                        chatMsgs={chatMsgs}
-                        authName={authName}
-                        chatReceiver={chatReceiver}
-                        chatReceiverPicURL={chatReceiverPicURL}
-                        authPicURL={authPicURL}
-                        endOfMEssagesRef={endOfMEssagesRef}
-                      />
+                      {isChatMsgTabActive ? (
+                        <ChatCards
+                          chatMsgs={chatMsgs}
+                          authName={authName}
+                          chatReceiver={chatReceiver}
+                          chatReceiverPicURL={chatReceiverPicURL}
+                          authPicURL={authPicURL}
+                          endOfMEssagesRef={endOfMEssagesRef}
+                        />
+                      ) : (
+                        <GroupChatCards
+                          chatMsgs={chatMsgs}
+                          authName={authName}
+                          chatReceiver={chatReceiver}
+                          chatReceiverPicURL={chatReceiverPicURL}
+                          authPicURL={authPicURL}
+                          endOfMEssagesRef={endOfMEssagesRef}
+                        />
+                      )}
+
                       <div ref={endOfMEssagesRef} />
                     </div>
                   </div>
@@ -237,7 +295,7 @@ const ChatPage = () => {
                         onClick={closeEmojis}
                         type="text"
                         disabled={!chatReceiver}
-                        className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
+                        className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10 pr-10"
                       />
                       <button
                         onClick={() => setShowEmojis((prev) => !prev)}

@@ -2,28 +2,29 @@
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
+import { useNotificationsStore } from "@/zustand/useNotificationStore";
 import { useUsersStore } from "@/zustand/useUsersStore";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const ChatUsers = ({ usersActiveMap }) => {
+const ChatUsers = ({ usersActiveMap, activeUser, setActiveUser }) => {
   const [displayUsers, setDisplayUsers] = useState([]);
-  const [activeUser, setActiveUser] = useState(null);
 
   const { users } = useUsersStore();
   const { chatReceiver, updateChatReceiver, updateChatReceiverPicURL } =
     useChatReceiverStore();
   const { authName } = useAuthStore();
-  const { updateChatMsgs } = useChatMsgsStore();
+  const { updateChatMsgs, isChatMsgTabActive } = useChatMsgsStore();
+  const { unreadMsgs, updateUnreadMsgs } = useNotificationsStore();
 
   useEffect(() => {
-    if (chatReceiver) getMSgs();
-  }, [chatReceiver]);
+    if (chatReceiver && isChatMsgTabActive) getMSgs();
+  }, [chatReceiver, isChatMsgTabActive]);
 
   useEffect(() => {
-    let usersList = users.filter((user) => user.username != authName);
+    let usersList = users.filter((user) => user.username !== authName);
     setDisplayUsers(usersList);
-  }, [users, usersActiveMap]);
+  }, [users, usersActiveMap, unreadMsgs]);
 
   const getMSgs = async () => {
     try {
@@ -54,6 +55,7 @@ const ChatUsers = ({ usersActiveMap }) => {
     updateChatReceiver(user.username);
     setActiveUser(user.username);
     updateChatReceiverPicURL(user.profilePic);
+    updateUnreadMsgs({...unreadMsgs, [user.username] : null})
   };
 
   return (
@@ -80,6 +82,14 @@ const ChatUsers = ({ usersActiveMap }) => {
                 : " bg-slate-400 "
             } h-3 w-3 rounded-full ml-2 `}
           />
+          {unreadMsgs &&
+            unreadMsgs[user?.username] &&
+            unreadMsgs[user?.username] > 0 && (
+              <span
+                className={`bg-red-500 h-4 w-4 rounded-full ml-2 text-white items-center text-xs font-bold flex justify-center `}>
+                {unreadMsgs[user?.username]}
+              </span>
+            )}
         </button>
       ))}
     </>

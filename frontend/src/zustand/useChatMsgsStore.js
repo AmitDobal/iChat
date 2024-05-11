@@ -2,13 +2,7 @@ import { create } from "zustand";
 
 export const useChatMsgsStore = create((set) => ({
   chatMsgs: [],
+  isChatMsgTabActive: true,
   updateChatMsgs: (chatMsgs) => set({ chatMsgs }),
+  updateIsChatMsgTabActive: (isActive) => set({ isChatMsgTabActive: isActive }),
 }));
-// export const useChatMsgsStore = create((set) => ({
-//   chatMsgs: [],
-//   updateChatMsgs: (chatMsgs) => {
-//     set(state => ({
-//       chatMsgs: [...state.chatMsgs, chatMsgs]
-//     }));
-//   },
-// }));
