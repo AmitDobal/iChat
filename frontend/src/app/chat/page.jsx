@@ -55,6 +55,7 @@ const ChatPage = () => {
       });
       setSocket(newSocket);
       newSocket.on("active", (actUser) => {
+        console.log("Activeee: ", actUser)
         setUsersActive(actUser);
       });
       newSocket.on("chat msg", (msgRecieve) => {

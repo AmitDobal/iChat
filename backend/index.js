@@ -5,8 +5,11 @@ import cors from "cors";
 import { Server } from "socket.io";
 import mongoDBConnection from "./db/mongoDBConnection.js";
 import msgsRouter from "./routes/msgs.route.js";
-import { updateUserActiveStatus } from "./controllers/users.controller.js";
 import {
+  updateUserActiveStatus,
+} from "./controllers/users.controller.js";
+import {
+  activeStatusEvent,
   chatMsgEvent,
   groupMsgEvent,
   notificationEvent,
@@ -39,7 +42,8 @@ io.on("connection", (socket) => {
   userSocketMap[username] = socket;
 
   //Active status to all connected users
-  io.emit("active", { username, activeStatus: true });
+  // io.emit("active", { username, activeStatus: true });
+  activeStatusEvent(username, userSocketMap, true);
   updateUserActiveStatus(username, "ONLINE");
 
   //Subscribed
@@ -56,7 +60,8 @@ io.on("connection", (socket) => {
 
   //DISCONNECT
   socket.on("disconnect", () => {
-    io.emit("active", { username, activeStatus: false });
+    // io.emit("active", { username, activeStatus: false });
+    activeStatusEvent(username, userSocketMap, false);
     updateUserActiveStatus(username, "OFFLINE");
     console.log("Client disconnected: " + socket.id);
   });
