@@ -158,28 +158,30 @@ const ChatPage = () => {
   };
 
   const sendMsg = () => {
-    //send msg to one to one Chat
-    if (isChatMsgTabActive) {
-      const msgToBeSent = {
-        text: msg,
-        sender: authName,
-        receiver: chatReceiver,
-      };
-      if (socket) {
-        socket.emit("chat msg", msgToBeSent);
+    if (msg) {
+      //send msg to one to one Chat
+      if (isChatMsgTabActive) {
+        const msgToBeSent = {
+          text: msg,
+          sender: authName,
+          receiver: chatReceiver,
+        };
+        if (socket) {
+          socket.emit("chat msg", msgToBeSent);
+        }
+        updateChatMsgs([...chatMsgs, msgToBeSent]);
+      } else {
+        //Send msg to Group chat
+        const msgToBeSent = {
+          groupId: chatReceiver,
+          text: msg,
+          sender: authName,
+        };
+        if (socket) {
+          socket.emit("group msg", msgToBeSent);
+        }
+        updateChatMsgs([...chatMsgs, msgToBeSent]);
       }
-      updateChatMsgs([...chatMsgs, msgToBeSent]);
-    } else {
-      //Send msg to Group chat
-      const msgToBeSent = {
-        groupId: chatReceiver,
-        text: msg,
-        sender: authName,
-      };
-      if (socket) {
-        socket.emit("group msg", msgToBeSent);
-      }
-      updateChatMsgs([...chatMsgs, msgToBeSent]);
     }
     setMsg("");
     closeEmojis();
