@@ -1,7 +1,7 @@
 import React from "react";
 import SearchChatUser from "./SearchChatUser";
 import { Tag } from "antd";
-import ChatUser from "./ChatUser";
+import ChatUser from "../Chat/ChatUser";
 import { CloseCircleOutlined } from "@ant-design/icons";
 
 const UserSearchChipContainer = ({usersAdded, setUsersAdded}) => {

@@ -1,5 +1,5 @@
 import React from "react";
-import GroupModal from "./GroupModal";
+import GroupModal from "./GroupCreateModal";
 import GroupUsers from "./GroupUsers";
 
 const GroupTabContainer = ({ activeGroup, setActiveGroup }) => {

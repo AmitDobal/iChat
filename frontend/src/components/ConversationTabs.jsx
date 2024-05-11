@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { UserOutlined, UsergroupAddOutlined } from "@ant-design/icons";
 import { Tabs } from "antd";
-import ChatUsers from "./ChatUsers";
-import GroupTabContainer from "./GroupTabContainer";
+import ChatUsers from "./Chat/ChatUsers";
+import GroupTabContainer from "./Group/GroupTabContainer";
 import { useChatMsgsStore } from "@/zustand/useChatMsgsStore";
 import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
 import { useGroupsStore } from "@/zustand/useGroupsStore";

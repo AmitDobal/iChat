@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import ChatCard from "./ChatCard";
+import ChatCard from "../Chat/ChatCard";
 import { useGroupsStore } from "@/zustand/useGroupsStore";
 
 const GroupChatCards = ({

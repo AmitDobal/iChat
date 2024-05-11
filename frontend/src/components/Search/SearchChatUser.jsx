@@ -1,7 +1,7 @@
 import { AutoComplete } from "antd";
 import axios from "axios";
 import React, { useState } from "react";
-import ChatUser from "./ChatUser";
+import ChatUser from "../Chat/ChatUser";
 import { useAuthStore } from "@/zustand/useAuthStore";
 
 const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {

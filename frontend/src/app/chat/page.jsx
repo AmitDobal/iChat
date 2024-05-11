@@ -7,9 +7,9 @@ import { Spin, message } from "antd";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
-import AvatarCard from "@/components/AvatarCard";
+import AvatarCard from "@/components/Avatar/AvatarCard";
 import Picker from "@emoji-mart/react";
-import ChatCards from "@/components/ChatCards";
+import ChatCards from "@/components/Chat/ChatCards";
 import { IoChatbubblesSharp } from "react-icons/io5";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { LuSend } from "react-icons/lu";
@@ -19,8 +19,9 @@ import { useRouter } from "next/navigation";
 
 import ConversationTabs from "@/components/ConversationTabs";
 import { useGroupsStore } from "@/zustand/useGroupsStore";
-import GroupChatCards from "@/components/GroupChatCards";
+import GroupChatCards from "@/components/Group/GroupChatCards";
 import { useNotificationsStore } from "@/zustand/useNotificationStore";
+import ChatSectionHeader from "@/components/Chat/ChatSectionHeader";
 
 const ChatPage = () => {
   const [socket, setSocket] = useState(null);
@@ -236,20 +237,12 @@ const ChatPage = () => {
             <div className="flex flex-col flex-auto h-full p-6 top-2 ">
               <div className="flex flex-col leading-tight mb-2">
                 <div className="text-xl mt-1 flex items-center gap-2">
-                  {chatReceiver && (
-                    <div className="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full">
-                      <img
-                        src={chatReceiverPicURL}
-                        alt="Avatar"
-                        className="rounded-full w-8 h-8 object-cover "
-                      />
-                    </div>
-                  )}
-                  <span className="text-gray-700 mr-3">
-                    {isChatMsgTabActive
-                      ? chatReceiver
-                      : selectedGroup?.groupName}
-                  </span>
+                  <ChatSectionHeader
+                    chatReceiver={chatReceiver}
+                    chatReceiverPicURL={chatReceiverPicURL}
+                    isChatMsgTabActive={isChatMsgTabActive}
+                    selectedGroup={selectedGroup}
+                  />
                 </div>
               </div>
               {/* Chat section */}

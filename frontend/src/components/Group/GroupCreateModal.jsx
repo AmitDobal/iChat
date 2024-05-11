@@ -1,6 +1,6 @@
 import { Button, Modal, Tag, message } from "antd";
 import React, { useState } from "react";
-import UserSearchChipContainer from "./UserSearchChipContainer";
+import UserSearchChipContainer from "../Search/UserSearchChipContainer";
 import { MdOutlineAddBox } from "react-icons/md";
 import axios from "axios";
 import { useAuthStore } from "@/zustand/useAuthStore";
