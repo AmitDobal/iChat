@@ -43,7 +43,6 @@ const ChatUsers = ({ usersActiveMap, activeUser, setActiveUser }) => {
       } else {
         updateChatMsgs([]);
       }
-      console.log("Chats msgs:", res.data);
     } catch (error) {
       console.error(
         "Error in geting the chat conversation messages: ",

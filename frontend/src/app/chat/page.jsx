@@ -61,7 +61,6 @@ const ChatPage = () => {
         setRecievedMsg(msgRecieve);
       });
       newSocket.on("group msg", (msgRecieve) => {
-        console.log("Group msg received: ", msgRecieve);
         setRecievedMsg(msgRecieve);
       });
       getUsersData();
