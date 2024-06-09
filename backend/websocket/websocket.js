@@ -78,7 +78,7 @@ export const groupMsgEvent = (userSocketMap) => {
     const membersUsername = await getMembersUsername(msg);
     addMsgToGroupConversation(msg.groupId, msg);
 
-    membersUsername.forEach((member) => {
+    membersUsername?.forEach((member) => {
       const memberSocket = userSocketMap[member];
       if (memberSocket) {
         memberSocket.emit("group msg", msg);

@@ -19,6 +19,15 @@ const msgSchema = mongoose.Schema({
   },
 });
 
+const unreadSchema = mongoose.Schema({
+  user: {
+    type: String,
+  },
+  unreadCount: {
+    type: Number,
+  },
+});
+
 const conversationSchema = mongoose.Schema({
   users: [
     {
@@ -27,6 +36,7 @@ const conversationSchema = mongoose.Schema({
     },
   ],
   msgs: [msgSchema],
+  unread: unreadSchema,
 });
 
 const conversation = mongoose.model("Conversation", conversationSchema);

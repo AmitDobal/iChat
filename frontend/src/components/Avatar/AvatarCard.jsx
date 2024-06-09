@@ -3,16 +3,19 @@ import { useRouter } from "next/navigation";
 import ProfileAvatar from "./ProfileAvatar";
 import { useAuthStore } from "@/zustand/useAuthStore";
 import axios from "axios";
+import { useChatReceiverStore } from "@/zustand/useChatReceiverStore";
 
 const AvatarCard = ({ authName }) => {
   const router = useRouter();
 
   const { clearAuthData } = useAuthStore();
+  const { updateChatReceiver } = useChatReceiverStore();
 
   const handleLogout = () => {
     router.push("/");
     clearAuthData();
     clearCookie();
+    updateChatReceiver("");
   };
   const clearCookie = async () => {
     try {

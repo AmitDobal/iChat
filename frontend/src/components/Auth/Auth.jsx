@@ -11,7 +11,8 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const { updateAuthId, updateAuthName, updatePicURL } = useAuthStore();
-
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isSignupLoading, setIsSignupLoading] = useState(false);
   const router = useRouter();
   useEffect(() => {
     authentication();
@@ -47,6 +48,7 @@ const Auth = () => {
     e.preventDefault();
     try {
       if (!isUsernamePwdValid()) return;
+      setIsSignupLoading(true);
       const res = await axios.post(
         process.env.NEXT_PUBLIC_AUTH_SIGNUP_API,
         {
@@ -62,8 +64,10 @@ const Auth = () => {
         message.success("Signup successfull!");
         router.replace("/chat");
       }
+      setIsSignupLoading(false);
     } catch (error) {
       console.log("Signup failed:", error.message);
+      setIsSignupLoading(false);
       if (error.response?.status === 409)
         message.error("Username already exist!", 5);
       else message.error(error.message);
@@ -73,6 +77,7 @@ const Auth = () => {
   const handleLogin = async () => {
     try {
       if (!isUsernamePwdValid()) return;
+      setIsLoginLoading(true);
       const res = await axios.post(
         process.env.NEXT_PUBLIC_AUTH_LOGIN_API,
         {
@@ -88,8 +93,10 @@ const Auth = () => {
         message.success("Login successfull!");
         router.replace("/chat");
       }
+      setIsLoginLoading(false);
     } catch (error) {
       console.log("Login failed:", error.message);
+      setIsLoginLoading(false);
       if (error.response?.status === 401)
         message.error("Username or Password Incorrect!", 5);
       else message.error(error.message);
@@ -156,16 +163,20 @@ const Auth = () => {
                       </label>
                     </div>
                     <div className="relative gap-4 flex justify-between align-middle">
-                      <button
-                        onClick={handleSignup}
-                        className="bg-cyan-500 text-white rounded-md px-2 py-1 w-28">
-                        Signup
-                      </button>
-                      <button
-                        onClick={handleLogin}
-                        className="bg-indigo-400 text-white rounded-md px-2 py-1 w-28">
-                        Login
-                      </button>
+                      <Spin spinning={isSignupLoading}>
+                        <button
+                          onClick={handleSignup}
+                          className="bg-cyan-500 text-white rounded-md px-2 py-1 w-28">
+                          Signup
+                        </button>
+                      </Spin>
+                      <Spin spinning={isLoginLoading}>
+                        <button
+                          onClick={handleLogin}
+                          className="bg-indigo-400 text-white rounded-md px-2 py-1 w-28">
+                          Login
+                        </button>
+                      </Spin>
                     </div>
                   </div>
                 </div>

@@ -22,7 +22,7 @@ const SearchChatUser = ({ width = "auto", usersAdded, setUsersAdded }) => {
     if (searchText?.length > 0) {
       const resUsers = await getSearchedUser(searchText);
       const addedUsersId = usersAdded?.map((user) => user._id);
-      let users = resUsers.filter((user) => !addedUsersId?.includes(user._id));
+      let users = resUsers?.filter((user) => !addedUsersId?.includes(user._id));
       users = users?.filter((user) => user?.username !== authName);
       console.log("Searched USers: ", users);
       setSearchedUsers(users);

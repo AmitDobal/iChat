@@ -1,14 +1,27 @@
-import { Modal, Tag } from "antd";
-import React from "react";
+import { Button, Modal, Tag } from "antd";
+import React, { useEffect, useState } from "react";
 import ChatUser from "../Chat/ChatUser";
 import { CloseCircleOutlined } from "@ant-design/icons";
+import SearchChatUser from "../Search/SearchChatUser";
+import { useGroupsStore } from "@/zustand/useGroupsStore";
 
 const GroupDetailsModal = ({ open, setOpen, groupPic, groupData }) => {
+  const [usersAdded, setUsersAdded] = useState([]);
+  const [showSearchUser, setShowSearchUser] = useState(false);
+  // const {groups, removeUserFromGroup} = useGroupsStore();
+
+  useEffect(() => {
+    setUsersAdded(groupData.users)
+  }, [groupData])
+  
+
   const handleCancel = () => {
     setOpen(false);
+    setShowSearchUser(false);
   };
   const handleOk = () => {
-    console.log("OK clicked");
+    // console.log("OK clicked", groups);
+    setShowSearchUser(false);
   };
   const ModalTitle = (
     <div>
@@ -27,7 +40,16 @@ const GroupDetailsModal = ({ open, setOpen, groupPic, groupData }) => {
       </div>
     </div>
   );
-  const handleChipClose = () => {};
+  const handleChipClose = (user) => {
+    console.log("CLOSE", user);
+    // console.log(groupData)
+    // removeUserFromGroup(groupData?._id, user?._id)
+    // groupData?.users?.filter()
+  };
+  const handleAddMember = () => {
+    console.log("ADD");
+    setShowSearchUser(true);
+  };
   return (
     <Modal
       title={ModalTitle}
@@ -36,11 +58,31 @@ const GroupDetailsModal = ({ open, setOpen, groupPic, groupData }) => {
       okText="Save"
       onOk={handleOk}>
       <div className="flex flex-col gap-1">
-        <div className="text-sm text-blue-950 font-semibold">Members:</div>
+        <div className="flex  justify-between items-end">
+          <div className="text-sm text-blue-950 font-semibold">Members:</div>
+          <div className="flex gap-2 items-center">
+            <div className={`${!showSearchUser && "hidden "}   w-52`}>
+              <SearchChatUser
+                width="100%"
+                usersAdded={usersAdded}
+                setUsersAdded={setUsersAdded}
+              />
+            </div>
+            <div className={`${showSearchUser && 'hidden'}`} >
+              <Button
+                onClick={handleAddMember}
+                className="bg-green-700 text-white hover:bg-green-400">
+                Add
+              </Button>
+            </div>
+          </div>
+        </div>
         <div className="h-40">
           <div className="w-full overflow-y-auto bg-slate-100 h-full rounded-lg p-2">
             {groupData?.users?.map((user) => (
-              <Tag key={user._id} color="cyan">
+              <Tag
+                key={user._id}
+                className="bg-gradient-to-b from-gray-50 to-gray-100 shadow-lg">
                 <div className="flex gap-2">
                   <ChatUser
                     username={user.username}
